@@ -12,6 +12,7 @@ src/Create_Font_h_File/Font_Pic/
 src/Display Pic/
 Tools/*.hex
 Tools/*.txt
+Create_Z21/~$*.xlsm
 Create_Z21/Temp/
 Create_Z21/Zip/
 Create_Z21/Pic/*.*
