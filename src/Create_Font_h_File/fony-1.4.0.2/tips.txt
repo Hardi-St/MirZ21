@@ -1,0 +1,28 @@
+Fony Tips 'n' Tricks
+--------------------
+
+* Use the middle mouse button or Shift key to choose a range of glyphs.
+  Edit functions such as Copy/Paste, Boldify, Invert etc. will then
+  apply to the selected range.
+
+* If you hold the Shift key down while choosing an action from the Edit
+  menu, such as "Invert" or "Mirror", the action will be performed for
+  the whole font instead of just the currently selected glyph. This also
+  works for actions in the Tools window.
+
+* To make glyphs thinner, use Invert, then Boldify, then Invert again.
+
+* Copying and pasting glyphs handles them as normal bitmap images, so
+  glyphs can be pasted to and copied from any image editor.
+
+* You can quickly double a font's size without making it look too
+  pixelated by using the "Scale2x" button in the resize dialog.
+
+* Quickly make a bolded version of your font by using the new "Boldify"
+  feature available from the Edit menu.
+
+* Easily grab a font from any image file by creating an empty font of
+  the appropriate size and using the new "Import from Bitmap" feature.
+
+* Last but not least, if you appreciate the long hours spent developing
+  Fony, donate a little bit to ensure it will be developed further!

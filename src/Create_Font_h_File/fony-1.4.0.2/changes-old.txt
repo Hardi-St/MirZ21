@@ -1,0 +1,220 @@
+1.3.6 (2008-01-14)
+
+ IMPROVEMENTS:
+ * Glyphs are scaled to fit the glyph preview area.
+
+ BUG FIXES:
+ * 1.3.6.1: BDF import crashed on wide fonts.
+ * BDF export wasn't padding bitmap data properly.
+ * TTF import didn't always import huge font sizes properly.
+
+-----------------------------------------------------------------------------
+1.3.5 (2007-12-18)
+
+ IMPROVEMENTS:
+ * More character sets in Font Header dropdown. Made more descriptive.
+
+ BUG FIXES:
+ * Font name was read incorrectly with fonts over 64 KB in size.
+ * Modified font generation to circumvent bug(?) in Windows with names
+   of fonts larger than 64 KB in size.
+ * Some internal fixes by mikk, thanks!
+
+-----------------------------------------------------------------------------
+1.3.4 (2007-10-10)
+
+ RELEASE NOTES:
+ Time to bump up the version number a bit!
+
+ IMPROVEMENTS:
+ * 1.3.4.2: Added Japanese translation, updated Russian.
+   (Thanks Asabukuro and solokot!)
+ * 1.3.4.1: Added an option of doubling font size using the
+   Scale2x method. (http://scale2x.sourceforge.net/)
+ * Bitmap export can now export separate bitmaps for each glyph
+   and you can now write a range of glyphs.
+
+ BUG FIXES:
+ * 1.3.4.2: Fixed (hopefully) an occasional bug where after importing
+   a TrueType font, the Font Header dialog would appear beneath the
+   main window and be inaccessible until alt-tabbing to Fony again.
+ * Font faces larger than 64 kilobytes were saved incorrectly.
+   (Thanks to Karsten Krischker!)
+ * Border color was inverted in bitmap export.
+ * Typing area of Preview window was using incorrect charset.
+ * Other minor fixes.
+
+-----------------------------------------------------------------------------
+1.3.3 (2007-07-13)
+
+ RELEASE NOTES:
+ This release has extensive internal modifications to enable Unicode
+ support in the user interface on Windows 2000/XP/Vista. I have also
+ changed the location Fony stores its settings in, so settings from
+ previous versions will be ignored unfortunately.
+
+ IMPROVEMENTS:
+ * 1.3.3.7: Windows clipboard is now used for copy/paste operations, so
+   glyphs can be copied between Fony instances and from/to other programs.
+ * 1.3.3.5: Updated Russian translation.
+ * Slightly improved the quality of TrueType font import.
+ * Sacrificed fancy menu+toolbar for Unicode compliance. The GUI should
+   now be about 98% Unicode compliant on Windows 2000/XP/Vista.
+
+ BUG FIXES:
+ * 1.3.3.6: Glyph preview areas and the Reset function were not correctly
+   initialized when a glyph was selected in the Preview window.
+ * 1.3.3.6: In some cases the last character was missing from font name.
+ * 1.3.3.5: Changing first/last char in font header was bugged with
+   monospaced fonts.
+ * 1.3.3.5: Fixed crashes caused by some dialogs.
+ * 1.3.3.5: Fixed glyph width problems with some monospaced font files.
+ * 1.3.3.4: The Open File dialog window is no longer stuck to only
+   showing Amiga fonts after importing an Amiga font.
+ * 1.3.3.3: Fixed incorrectly formed resource table when saving FON files
+   containing multiple fonts. This fixes the issue with Windows only
+   seeing the first font in the file.
+ * 1.3.3.2: Fixed issues with menu/toolbar when using XP visual themes.
+
+-----------------------------------------------------------------------------
+1.3.2 (2007-06-18)
+
+ ADDITIONS:
+ * BDF font import and export. (Not perfect; I'll improve it for the
+   next release if I can find more information on how all the metrics
+   stuff is actually supposed to work.)
+ * Russian translation (thanks solokot!).
+
+ IMPROVEMENTS:
+ * Finally understands command line file arguments so you can associate
+   Fony with font file formats. (Well, only FON/FNT/BDF/FONT right now.)
+
+ BUGFIXES
+ * 1.3.2.2: Fixed FONTBOUNDINGBOX and PROPERTIES in exported BDF.
+
+-----------------------------------------------------------------------------
+1.3.0 (2007-06-14)
+
+ RELEASE NOTES:
+ If you'd like to translate Fony to your language, get the DKLang Translation
+ Editor from http://www.dk-soft.org/ and open Fony\Data\Language\Fony.dklang.
+ Don't forget to send your translation to me!
+
+ ADDITIONS:
+ * Amiga bitmap font import (both .font and raw font data files).
+ * Finnish translation.
+
+ IMPROVEMENTS:
+ * Modify widths of all glyphs by depressing Shift when changing glyph width.
+ * Font scaling to any percentage of original size.
+ * Many interface improvements; better dialogs, icons, translation support.
+
+ BUG FIXES:
+ * Resizing font to a smaller size cut off glyph data at the bottom.
+ * Fixed some issues with sizing the Glyph Editor window.
+ * Conversion to monospaced could add garbage to the right side of glyphs.
+
+-----------------------------------------------------------------------------
+1.2.8 (2007-05-14)
+
+ ADDITIONS:
+ * Font scaling. (Edit -> Resize Font)
+
+ IMPROVEMENTS:
+ * Importing font resources into current FON. (Fonts -> Add from file)
+ * Apply an action to all glyphs by depressing Shift. (Move, Invert, Mirror)
+
+-----------------------------------------------------------------------------
+1.2.4 (2007-05-12)
+
+ ADDITIONS:
+ * Drawing tools: Line, Flood fill.
+
+-----------------------------------------------------------------------------
+1.2.2 (2007-05-10)
+
+ ADDITIONS:
+ * Bitmap Font Writer font import.
+
+ IMPROVEMENTS:
+ * Improved bitmap export (Bitmap Font Writer, transparency, colors).
+
+-----------------------------------------------------------------------------
+1.2.0 (2007-02-23)
+
+ IMPROVEMENTS:
+ * Added an option for displaying glyphs proportionally while editing.
+
+ OTHER:
+ * Removed bitmap filetype filter from the file open dialog since
+   bitmap importing is not implemented yet.
+
+-----------------------------------------------------------------------------
+1.1.1 (2007-01-30)
+
+ IMPROVEMENTS:
+ * Added a Zoom 2x option to the font preview window.
+ * You can now click in the preview window to select a glyph.
+ * Bitmap export now queries you for a string to write into the bitmap.
+ * PNG image export.
+
+ BUG FIXES:
+ * Fixed a small memory leak.
+
+-----------------------------------------------------------------------------
+1.0.0 (2007-01-12)
+
+ IMPROVEMENTS:
+ * GUI and internal tweaks.
+
+ BUG FIXES:
+ * Internal font filename was not updated properly, breaking Reload and Save.
+ * Fixed confirmation dialogs.
+
+-----------------------------------------------------------------------------
+1.0.0 Beta (2007-01-11)
+
+ IMPROVEMENTS:
+ * You can finally add (clone) and remove FNT resources in a FON file.
+ * Some GUI and internal tweaks.
+
+ BUG FIXES:
+ * One button drawing mode now actually functional (see Preferences).
+
+-----------------------------------------------------------------------------
+0.9b3 (2007-01-09)
+
+ ADDITIONS:
+ * Reset Glyph (CTRL-Z) undoes changes made to the glyph graphic.
+ * "Save as..." -> Bitmap lets you save a small BMP preview of the font.
+
+ IMPROVEMENTS:
+ * Mouse wheel now browses glyphs.
+ * Reworked glyph pasting.
+
+-----------------------------------------------------------------------------
+0.9b2 (2006-09-26)
+
+ BUG FIXES:
+ * dfInternalLeading and dfExternalLeading are now properly initialized.
+ * Low bit of dfPitchAndFamily now written correctly.
+
+-----------------------------------------------------------------------------
+0.9b (2006-09-24)
+
+ ADDITIONS:
+ * Vector font import.
+ * Live font preview.
+ * Preferences dialog.
+
+-----------------------------------------------------------------------------
+0.9a (2006-09-??)
+
+ IMPROVEMENTS:
+ * Reworked FON saving.
+ * GUI improvements.
+
+-----------------------------------------------------------------------------
+0.8 (2006-09-15)
+
+ * Initial alpha test release.

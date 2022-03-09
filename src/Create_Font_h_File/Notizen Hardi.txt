@@ -1,0 +1,134 @@
+
+Schriften umwandeln: https://github.com/olikraus/u8g2/tree/master/tools/font/bdfconv
+U8g2 font format: https://github.com/olikraus/u8g2/wiki/u8g2fontformat
+U8glib font format
+
+Schriften der alten lib: https://github.com/olikraus/u8glib/tree/master/tools/font
+DIE alte Schrift: https://github.com/olikraus/u8glib/blob/master/tools/font/ttf/TEACPSS_.TTF
+         Als BDF: https://github.com/olikraus/u8glib/blob/master/tools/font/build/tpss.bdf
+         => \\Fritz-nas\fritz.nas\Temp
+Hier ist ein bdf2u8g konverter: https://github.com/olikraus/u8g2
+
+
+
+05.03.21:
+Für das Messwagen Display wird die Schrift u8x8_font_px437wyse700a_2x2_r verwendet.
+Diese hat aber nur die Zeichen bis 127. Die Schriftart mit allen Zeichen passt nicht in den Arduino.
+Darum soll eine Schrift mit den deutschen Umlauten und dem Grad Zeichen erzeugt werden.
+Die Schrift wird aus Px437_Wyse700b.ttf generiert. Im Makkefile
+  "C:\Dat\Märklin\Arduino\Zugzielanzeiger\Bahnsteiganzeige_Hardi\Fonts\aus neuer Lib u8g2\u8g2-master\tools\font\bdfconv\Makefile"
+findet man wie das geht.
+
+
+
+Erste Versuche mit verlinkten Zeichen
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+REM Generierung einer angepasten Schriftart mit Grad Zeichen und Deutschen Umlauten:
+REM
+REM Bei der 8x8 Schrift werden unbenutzte Zeichen nicht übersprungen. Dadurch ist es nicht möglich, dass man
+REM diesen Bereich verwendet: "32-127,176"
+REM Dadurch wird die Schrift zu groß und enthält vielen Nullen ;-(
+:bdfconv -y -1 -th 2 -tv 2 -v -f 2 -m "32-127,176" Px437_Wyse700a.bdf -o u8x8_font_px437wyse700a_2x2_rx.h  -n u8x8_font_px437wyse700a_2x2_rx
+
+REM Einige normale Zeichen können ersetzt werden:
+REM  " =>     34           Not replaced
+REM  # => °   35 => 176    degree sign
+REM  $ => ae  36 => 228    ä
+REM  & => oe  38 => 246    ö
+REM  ' => ue  39 => 252    ü
+
+::bdfconv -y -1 -th 2 -tv 2 -v -f 2 -m "32-122,~35,176>35,~36,228>36,~38,246>38,~39,252>39" Px437_Wyse700a.bdf -o u8x8_font_px437wyse700a_2x2_rx.h  -n u8x8_font_px437wyse700a_2x2_rx
+
+
+
+REM Mit Zusätzlichen eigenen Symbolen
+REM Erzeugt mit https://fony.de.uptodown.com/windows/download
+REM Hier sind die Sonderzeichen ° ae oe, ue bereits an die entsprechenden Stellen (siehe oben) copiert => Das Mapping ist nicht nötig.
+
+REM  { 123: Speed
+REM  | 124: Distance
+REM  } 125: Gradient
+REM  ~ 126: Tilt
+REM    127: Distance Vacuum
+REM    128: Duration Vacuum
+REM    129: Total Distance
+REM    130: Total Time
+REM    131: Total Distance Vacuum
+REM    132: Total Duration Vacuum
+REM    133: U Rail
+REM    134: U Ext
+REM    135: U Arduino
+
+REM Small letters
+REM     35: °
+REM     37: #
+REM     91: kmh
+REM     92: m
+REM     93: km
+REM     94: h
+REM     95: s
+REM     96: V
+
+::bdfconv -y -1 -th 2 -tv 2 -v -f 2 -m "32-135" Px437_Wyse700a_Add_Sym.bdf -o ..\u8x8_font_px437wyse700a_2x2_rx_Add_Sym.h  -n u8x8_font_px437wyse700a_2x2_rx_Add_Sym
+
+
+
+REM Hier steht, dass man die option "-th 2 -tv 2" für 16x16 verwenden muss:
+REM   https://github.com/olikraus/u8g2/issues/1301
+REM
+REM Sourcen und exe von bdfconv stehen hier:
+REM   https://github.com/olikraus/u8g2/tree/master/tools/font/bdfconv
+REM Dort ist auch das bdfconv.exe
+
+REM Neue Version am 06.03.21 herunter geladen:
+REM bdfconv [options] filename
+REM -h          Display this help
+REM -v          Print log messages
+REM -b <n>      Font build mode, 0: proportional, 1: common height, 2: monospace, 3: multiple of 8
+REM -f <n>      Font format, 0: ucglib font, 1: u8g2 font, 2: u8g2 uncompressed 8x8 font (enforces -b 3)
+REM -m 'map'    Unicode ASCII mapping
+REM -M 'mapfile'    Read Unicode ASCII mapping from file 'mapname'
+REM -o <file>   C output font file
+REM -k <file>   C output file with kerning information
+REM -p <%>      Minimum distance for kerning in percent of the global char width (lower values: Smaller gaps, more data)
+REM -x <n>      X-Offset for 8x8 font sub-glyph extraction (requires -f 2, default 0)
+REM -y <n>      Y-Offset for 8x8 font sub-glyph extraction (requires -f 2, default 0)
+REM -th <n>     Horizontal size of the 8x8 glyphs (requires -f 2, default 1)
+REM -tv <n>     Vertical size of the 8x8 glyphs (requires -f 2, default 1)
+REM -n <name>   C indentifier (font name)
+REM -d <file>   Overview picture: Enable generation of bdf.tga and assign BDF font <file> for description
+REM -l <margin> Overview picture: Set left margin
+REM -g <glyphs> Overview picture: Set glyphs per line (default: 16)
+REM -a          Overview picture: Additional font information (background, orange&blue dot)
+REM -t          Overview picture: Test string (Woven silk pyjamas exchanged for blue quartz.)
+REM -r          Runtime test
+REM
+REM map := <mapcmd> { "," <mapcmd> }
+REM mapcmd := <default> | <maprange> | <exclude> | <exclude-kerning>
+REM default := "*"
+REM maprange := <range> [  ">" <addexpr> ]        Move specified glyph <range> to target code <num>
+REM exclude := "~" <range>
+REM exclude-kerning:= "x" <range>
+REM range := <addexpr> [ "-" <addexpr> ]          Select glyphs within specified range
+REM addexpr := <mulexpr> [ "+" <mulexpr> ]
+REM mulexpr := <num> [ "*" <num> ]
+REM num := <hexnum> | <decnum>
+REM hexnum := "$" <hexdigit> { <hexdigit> }
+REM decnum := <decdigit> { <decdigit> }
+REM decdigit := "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+REM hexdigit := "a" | "b" | "c" | "d" | "e" | "f" | "A" | "B" | "C" | "D" | "E" | "F" | <decdigit>
+REM { } zero, one ore more, [ ] zero or once, | alternative
+REM example:
+REM   -m '32-255'     select gylphs from encoding 32 to 255
+REM   -m '32-255,~64' select gylphs from encoding 32 to 255, exclude '@'
+REM   -m '32,48-57'   select space, '1', '2', ... '9'
+REM build modes:
+REM  -b 0: Most compact, glyph bitmap is minimal
+REM  -b 1: Like -b 0, but glyph bitmap is extended to the height of the largest glyph within the selected glyph list.
+REM        Also the width of the gylphs is extended to cover the delta x advance.
+REM  -b 2: Like -b 1, but glyph width is set to the width of the largest glyph within the selected gylph list.
+REM  -b 3: Like -b 2, but width and height are forced to be a multiple of 8.
+REM
+
+
