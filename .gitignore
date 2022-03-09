@@ -6,9 +6,10 @@ Alt/
 Temp/
 zip/
 privat/
+src/Z21_to_Mae.ino.cpp
+src/*.xlsx
 src/Create_Font_h_File/Font_Pic/
 src/Display Pic/
-src/*.xlsx
 Tools/*.hex
 Tools/*.txt
 Create_Z21/Temp/
