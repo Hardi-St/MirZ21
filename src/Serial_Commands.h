@@ -10,8 +10,9 @@ const char CmdHelp[] PROGMEM =
     "             r lokinfo~Rolf~~~~~\n"
     "             :\n"
     "r <Nr>      Read config data entry according to page 46 'cs2CAN-Protokoll-2_0.pdf'\n"
-    "l           Read all loko data\n"
+    "read        Read all loko data\n"
     "list        List al loko data (list 0 = raw)\n"
+    "fkt         Define the loco funktions (Name<TAB>nr nr ...)\n"
     #if TEST_LOCO_SELECTION
     "adr Nr a    Set the adress for a loco for tests (uid for MM and DCC is corrected)\n"
     "uid Nr u    Set the uid for a loco for tests\n"
@@ -33,7 +34,7 @@ const char CmdHelp[] PROGMEM =
   #endif
     ;
 
-#define MAX_MESSAGE_LENGTH  30
+#define MAX_MESSAGE_LENGTH  200  // Must be long enough to hold the "fkt" commands
 
 #if defined(USE_CAN)
 
@@ -183,7 +184,7 @@ void SerialCmd_loop()
                Answer_IDList += ":";
            #endif
            }
-        Dprintf("'%s'\n", message);
+        Dprintf("'%s'\n", message); // Debug
         uint16_t CmdLen = 0;
         If_Msg_Start("?")     Serial.println(CmdHelp);
 #if defined(USE_CAN)
@@ -245,7 +246,8 @@ void SerialCmd_loop()
         else If_Msg_Start("a")     { ReqAll = 1; Dprintf("Automatic requesting all config files\n"); }
         else If_Msg_Start("list ")   Print_Lok_Data(atoi(MsgPar));
         else If_Msg_Start("list")    Print_Lok_Data();
-        else If_Msg_Start("l")       Read_Lok_Config_from_CAN(&can);
+        else If_Msg_Start("read")    Read_Lok_Config_from_CAN(&can);
+        else If_Msg_Start("fkt ")    Define_Functions(MsgPar);
 
 
     #if SPY_CAN_CONFIG_FILE

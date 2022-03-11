@@ -565,6 +565,44 @@ uint16_t Read_Var_Dec(char* &p, const char* VarName)
   return 0xFFFF & Val;
 }
 
+//-------------------------------
+void Define_Functions(char *Line)
+//-------------------------------
+{
+  char* token = strtok(Line, "\t");
+  if (token == NULL) return;
+  uint16_t Nr;
+  char Name[LOK_NAME_LEN+1];
+  for (Nr = 0; Nr < Lok_Cnt; Nr++)
+    {
+    if (strcmp(token, Read_Lok_Name_from_EEPROM(Nr, Name)) == 0) break;
+    }
+  if (Nr >= Lok_Cnt)
+     {
+     Dprintf("Error: Loco '%s' not found\n", token);
+     return ;
+     }
+
+  uint8_t FktArr[32];
+  uint8_t FktNr = 0;
+  memset(FktArr, 0, 32);
+
+  while ((token = strtok(NULL, " ")) != NULL)
+      {
+      int16_t Val = atoi(token);
+      if (Val < 0 || Val > 255)
+         {
+         Dprintf("Error: Wrong function number %s\n", token);
+         return ;
+         }
+      if (FktNr > 31) return ;
+      FktArr[FktNr++] = Val;
+      if (FktNr > 31) break;
+      }
+  Write_FktTyp_to_EEPROM(Nr, FktArr);
+  Dprintf("fkt ok\n");
+}
+
 // Abspeichern der Lokfunktionen
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Es sind bis zu 32 Funktionen pro Lok möglich. Pro Funktion wird ein Byte benötigt.
@@ -1132,7 +1170,7 @@ uint8_t Read_Lok_Config_from_CAN(CAN_CLASS *can)
   Set_Status_LED(0);
   Write_Lok_Cnt_to_EEPROM(Lok_Cnt);
 
-  Print_Lok_Data(); // Debug
+  Print_Lok_Data(2);
 
   EEPROM_Loko_Write();
 

@@ -204,11 +204,11 @@
        - Transact
    - Get_Arduino_Baudrate
 
-   ESP32: Silicon Labs CP210x
-   ESP8266: CH340 wie der Arduino
-
+ - Die Lokomotiven fahren nicht los, wenn sie nicht an der entsprechenden MS2 hängen.
+   Evtl. muss man da was an der MS2 Bridge ändern
 
  - Wie viele Apps können sich verbinden?
+   Anzahl auf 20 erhöhen
 
  - Aus Irgend einem Grund Funktioniert das entzippen der ZLib Dateien nicht mehr mit
    der aktuellen Version (23.02.22). Auch dann nicht wenn man MAX_LOK_DATA auf 65 setzt.

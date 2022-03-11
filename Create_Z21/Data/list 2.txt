@@ -1,6 +1,27 @@
-''
-Unknown serial command. Enter ? for help.
-'list 2'
+Starting Read_Lok_Config_from_CAN
+Blackfoot
+Back Pearl
+Blaufuchs
+Browny
+Cora
+Glaskasten
+Helsinki
+Hondekop
+ICE
+Kittel Dampftrie
+Kroko
+Lolo
+Messwagen
+Molly
+Murnau
+Onkel Bert
+Rocksy
+Rolf
+Rotfuchs
+Smokie
+Susi
+Tante Olga
+Wendy
 z21Ad OptA Adr  uid  Typ Nr  Name               Functions
 ~~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~~~~~~~~~~~~~~~~ ~~~~~~~~~
    3  8021    3 4015 MFX   8 "Hondekop"           1   2   2   8   8   2
@@ -27,4 +48,5 @@ z21Ad OptA Adr  uid  Typ Nr  Name               Functions
  112  8007  112 4007 MFX   4 "Browny"             1   7   5 140   2   5  10   5   5   5   5   5 133   5 140   5
  601  4601  601 C259 DCC  13 "Messwagen"          1  51 180 181 182 183 143 185 144 142  60  61  62
 Total: 23
+Compressed size=667 NormSize=1197
 

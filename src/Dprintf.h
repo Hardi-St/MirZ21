@@ -6,9 +6,14 @@
 //  #define F(str)               str
 //#endif
 
+
+// Attention: The Dprintf messages are also used for the communication with the Exel tool
+// => They can't be disabled at the moment
+// ==> A special print function has to be defined for the important print functions
+
 #define PRINT_DEBUG_MESSAGES  // Enable this line to print debug messages to the PC (USB)
-                                 // This would reduce the number of possible loks because there
-                                 // is not enough RAM available if debug messages are generated.
+                              // This would reduce the number of possible loks because there
+                              // is not enough RAM available if debug messages are generated.
 
 #ifdef PRINT_DEBUG_MESSAGES
   // #define DEBUG_LCD_OUTPUTS   // Print all LCD outputs additionally to the debug output (serial port)
