@@ -83,7 +83,7 @@ void Add_Message_to_Hex_Buffer(unsigned long rxId, byte len, byte rxBuf[8], char
   strcat(hex, "\n");
 }
 
-uint8_t Check_Abort_Button(uint8_t &Old_Button); // Forward definition
+uint8_t Check_Abort_Button_or_SerialChar(uint8_t &Old_Button); // Forward definition
 
 //------------------------------------------------------------------------------------------
 uint32_t Wait_for_CAN_Message(CAN_CLASS *can_r, uint8_t &len, byte *rxBuf, uint32_t Wait_ms)
@@ -105,7 +105,11 @@ uint32_t Wait_for_CAN_Message(CAN_CLASS *can_r, uint8_t &len, byte *rxBuf, uint3
                }
             }
          WDT_RESET();
-         if (Check_Abort_Button(Old_Button)) return 0xFFFFFFFE; // Abort by pressing the button
+         switch (Check_Abort_Button_or_SerialChar(Old_Button))
+            {
+            case 1: return 0xFFFFFFFE; // Abort by pressing the button
+            case 2: return 0xFFFFFFFD; // Abort by pressing serial character
+            }
          }
   //Dprintf("No CAN message received from CAN\n");
   return 0xFFFFFFFF;
@@ -132,22 +136,27 @@ uint8_t ReadExpectedBytesAndCRC(CAN_CLASS can, uint32_t &Bytes, uint16_t &crc, u
        return len;
        }
   // Error
-  #if 1 // Debug
-     Serial.print(F("Error ReadExpectedBytesAndCRC "));
-     if (rxId == 0xFFFFFFFF)
-           Serial.println(F("Timeout"));
-     else if (rxId == 0xFFFFFFFE)
-           Serial.println(F("Aborted by button"));
-     else  {
-           Serial.println(F("Wrong message receicved"));
-           char hexStr[100];
-           Add_Message_to_Hex_Buffer(rxId, len, rxBuf, hexStr);
-           Serial.println(hexStr);
-           }
-  #endif
-  if (rxId == 0xFFFFFFFE)
-       return 0xE;
-  else return 0;
+  Serial.print(F("Error ReadExpectedBytesAndCRC "));
+  if (rxId == 0xFFFFFFFF)
+        Serial.println(F("Timeout"));
+  else if (rxId == 0xFFFFFFFE)
+        {
+        Serial.println(F("Aborted by button"));
+        return 0xE;
+        }
+  else if (rxId == 0xFFFFFFFD)
+        {
+        Serial.println(F("Aborted by serial command"));
+        return 0xE;
+        }
+  else  {
+        Serial.println(F("Wrong message receicved"));
+        char hexStr[100];
+        Add_Message_to_Hex_Buffer(rxId, len, rxBuf, hexStr);
+        Serial.println(hexStr);
+        }
+
+  return 0;
 }
 
 //-----------------------------------------------------

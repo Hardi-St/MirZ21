@@ -191,6 +191,9 @@
 
  ToDo:
  ~~~~~
+ - Excel: Eigenen Dialog für "Import icons from CSx backup". Momentan muss man "Ja" für CS3 und "Nein" für CS2 drücken
+   Das ist nicht besonders intuitiv.
+
  - Ablauf USB Port Erkennung:
    - DCCSend()
    - SendDCCAccessoryCommand()
@@ -203,6 +206,8 @@
      - DetectArduino Wenn eine Arduino/ESP erkannt wurde
        - Transact
    - Get_Arduino_Baudrate
+
+ - 11.03.22:  MS2 von 3.121 auf 3.148 aktualisiert
 
  - Die Lokomotiven fahren nicht los, wenn sie nicht an der entsprechenden MS2 hängen.
    Evtl. muss man da was an der MS2 Bridge ändern
@@ -908,6 +913,15 @@ uint8_t Check_Abort_Button(uint8_t &Old_Button)
   return 0;
 }
 
+//------------------------------------------------------------
+uint8_t Check_Abort_Button_or_SerialChar(uint8_t &Old_Button)
+//------------------------------------------------------------
+{
+  uint8_t Res = Check_Abort_Button(Old_Button);
+  if (Res == 0 && Serial.available() > 0) Res = 2;
+  return Res;
+}
+
 //---------------------------------
 uint8_t Get_Central(CAN_CLASS *can)
 //---------------------------------
@@ -941,7 +955,7 @@ uint8_t Get_Central(CAN_CLASS *can)
        }
     CAN_Server();
     WDT_RESET();
-    if (Check_Abort_Button(Old_Button)) break; // Abort by pressing the button
+    if (Check_Abort_Button_or_SerialChar(Old_Button)) break; // Abort by pressing the button
     }
   if (WaitingWasShown)
       {         //1234567890123
