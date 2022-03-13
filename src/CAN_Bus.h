@@ -191,8 +191,7 @@
 
  ToDo:
  ~~~~~
- - Excel: Eigenen Dialog für "Import icons from CSx backup". Momentan muss man "Ja" für CS3 und "Nein" für CS2 drücken
-   Das ist nicht besonders intuitiv.
+ - Erkennen wen eine neue MFX Lok auf die Schinen gestellt wird
 
  - Ablauf USB Port Erkennung:
    - DCCSend()

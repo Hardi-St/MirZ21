@@ -48,7 +48,8 @@ ECHO .save Temp/export/Data/Loco.sqlite                                       >>
 ECHO .quit                                                                    >>Temp\Import.sql
 
 ECHO.
-Tools\sqlite3.exe Vorlagen\Loco.sqlite < Temp\Import.sql
+copy Vorlagen\Loco.sqlite Temp\Loco.sqlite
+Tools\sqlite3.exe Temp\Loco.sqlite < Temp\Import.sql
 
 if NOT exist Temp\export\Data\Loco.sqlite (
    ECHO ERROR: Loco.sqlite not generated
