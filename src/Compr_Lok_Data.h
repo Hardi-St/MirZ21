@@ -348,7 +348,7 @@ int32_t Compr_Lok_Data(All_EEPROM_Data_t &e, uint8_t* &Res, size_t Max_Res_Size)
          break;
          }
     }
-   Dprintf("Compressed size=%i NormSize=%i\n", p-Res, 1+Lok_Cnt*sizeof(Const_Lok_Data_t));
+   //Dprintf("Compressed size=%i NormSize=%i\n", p-Res, 1+Lok_Cnt*sizeof(Const_Lok_Data_t));
    free(Used_Func_Arr);
    return p-Res;
 }

@@ -189,24 +189,47 @@
   Das Bild beograd64055_wagon1.png stammt von hier:
    https://www.modellbahn-fokus.de/product/H0/Roco/Sneltreinwagon/4-1-0-001003-80840-0-nl-3-3-2-0-0-1-0-0/index.html
 
+ - 11.03.22:  Eine MS2 von 3.121 auf 3.148 aktualisiert
+
  ToDo:
  ~~~~~
- - Erkennen wen eine neue MFX Lok auf die Schinen gestellt wird
+ - Eine Unbekannte DCC Lok vermutlich auch MM) kann ohne Eintrag in der MS2 gesteuert werden
+   Momentan leitet die MirZ21 die Befehle von der Z21 App aber nicht weiter weil die Lok
+   nicht gefunden wird.
+   - Lok automatisch anlegen (Wo? RAM/EEPROM)
+     uint16_t Find_Index_from_Adr(uint16_t Adr)
+   - Lok ohne Eintrag fahren
+     - Geht das?
+       - Status der Funktionstasten?
+     - Anzeige auf Display nicht möglich
+     - Nicht per IR Steuerbar
 
- - Ablauf USB Port Erkennung:
-   - DCCSend()
-   - SendDCCAccessoryCommand()
-   - Check_USB_Port_with_Dialog()
-   - USB_Port_Dialog()
-   - Show_USB_Port_Dialog()
-   - Select_Arduino_w_Blinking_LEDs_Dialog
-   - Select_COM_Port_UserForm.ShowDialog
-     - EnumComPorts
-     - DetectArduino Wenn eine Arduino/ESP erkannt wurde
-       - Transact
-   - Get_Arduino_Baudrate
+ - Bei DCC / MM Lokomotiven immer den Offset verwenden da dieser automatisch erzeugt wird
+   Dann bleiben die MFX Adressen für die MFX Lokomotiven frei.
 
- - 11.03.22:  MS2 von 3.121 auf 3.148 aktualisiert
+ - Erkennen wenn eine neue MFX Lok auf die Schienen gestellt wird
+   Die uid und Adresse der neuen Lok kann soll auf dem Display angezeigt
+   werden. Dann kann man die Lok von Hand in der Z21 App anlegen.
+   Dazu währe es gut, wenn immer eine zusätzliche Lok vorbereitet ist welche
+   man nur noch kopieren muss.
+
+ - Steuern von unbekannten Lokomotiven und aufnahme in die Liste
+   Die Lok ist damit noch nicht in der Märklin Welt bekannt.
+   - Kann man sie trotzdem steuern?
+   - Kann sie über den CAN Bus angelegt werden?
+   - Die Lok hat erst mal keinen Namen. Wie wird die Zuordnung gemacht
+     In der Z21 wird die Lok über die Adresse angesprochen.
+     Bei Märklin wird der Namme verwendet.
+     Was ist wenn man den Namen im Excel ändert
+   - Das besste währe wenn man die Lok in der Märklin Welt anlegt. Dann geht alles den normalen weg.
+     Hier würde der Lokkarten Simulator helfen
+   - Wo gibt man den Namen ein?
+     - Märklin
+     - Excel
+     - Eigene App welchemit der MirZ21 redet
+
+ - Rückmelder an Z21 weiter leiten
+
 
  - Die Lokomotiven fahren nicht los, wenn sie nicht an der entsprechenden MS2 hängen.
    Evtl. muss man da was an der MS2 Bridge ändern

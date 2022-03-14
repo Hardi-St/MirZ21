@@ -355,7 +355,7 @@ uint16_t Find_Index_from_Adr_All(uint16_t Adr)
       //char Name[LOK_NAME_LEN+1]; Dprintf("%2i %-16s %4i\n", i, Read_Lok_Name_from_EEPROM(i, Name), Read_Lok_Adr_from_EEPROM(i)); // Debug
       if (Read_Lok_Adr_from_EEPROM(i) == Adr) return i;
       }
-  Dprintf("Error: Adr %i not found in Find_Index_from_Adr()\n", Adr);
+  Dprintf("Error: Adr %i not found in Find_Index_from_Adr_All()\n", Adr);
   return 0xFFFF; // Not found
 }
 
@@ -442,7 +442,7 @@ uint16_t Find_Index_from_Adr(uint16_t Adr)
 #else  // USE_EXT_ADR_TABLE
 
 //----------------------------------------
-uint16_t Find_Index_from_Adr(uint16_t Adr)
+uint16_t Find_Index_from_Adr(uint16_t Adr) // Old
 //----------------------------------------
 {
   uint16_t i;

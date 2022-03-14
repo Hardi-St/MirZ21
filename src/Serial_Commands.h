@@ -175,6 +175,9 @@ void SerialCmd_loop()
    else if (message_pos || ReqAll > 0)
         { // Full message received...
         message[message_pos] = '\0'; // Add null character to string
+
+        if (Serial.available() && Serial.peek() == '\n') Serial.read(); // Remove '\n' because this will be interpreted as abort when
+                                                                        // reading the loco data in Check_Abort_Button_or_SerialChar()
         if (ReqAll > 0)
            {
            sprintf(message, "r %2i", ReqAll++);  // Simulate
