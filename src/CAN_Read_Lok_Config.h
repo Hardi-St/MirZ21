@@ -192,6 +192,7 @@
 
 #define MAX_BOOTTIME_CENTRAL (5*60)// [sec] Maximal boottime of the CS2. The program waits for this long to read the coco config
 
+#define CREATE_NOT_FOND_LOCOS  1   // Create locos if they are receifed via CAN or LAN (Z21 App)
 
 bool Create_CSV = 1;
 
@@ -287,14 +288,32 @@ void Set_Status_LED(uint8_t On)
   #endif
 }
 
-//-----------------------------------------
-uint16_t Find_Index_from_ID(uint16_t uid)
-//-----------------------------------------
+uint8_t Add_Detected_Loco_to_EEPROM(uint16_t Z21Adr); // Forward definition
+
+//--------------------------------------------------------
+uint16_t Find_Index_from_ID(uint16_t Z21Adr, uint16_t uid)
+//--------------------------------------------------------
 // Find the uid in the EEPROM array Const_Lok_Data[Nr].uid
 {
   uint16_t i;
   for (i = 0; i < Lok_Cnt; i++)
       if (Read_Lok_uid_from_EEPROM(i) == uid) return i;
+  #if CREATE_NOT_FOND_LOCOS
+     if (Z21Adr == 0) // Function called from CAN
+        {
+        #if EXT_ADR_RANGE_3_TYP != EA_TYP_SID
+            #error "ToDo: Not finished EXT_ADR_RANGE_3_TYP mut be equal EA_TYP_SID at the moment"
+        #endif
+        // 1-0x03FF=MM, 0x0800-0x0BFF=?,  0x4000-0x7FFF: MFX, 0xC000-0xFFFF:DCC
+        if (uid <= 0x3FF)                        Z21Adr = uid + 9000;                         // MM
+        else if (uid >= 0x4000 && uid <= 0x7FFF) Z21Adr = uid - 0x4000 + EXT_ADR_RANGE_END_2; // MFX
+        else if (uid >= 0xC000)                  Z21Adr = uid - 0xC000 + EXT_ADR_RANGE_END_1; // DCC
+        else return 0xFFFF;
+        }
+     Dprintf("Error: uid %04X not found in Find_Index_from_ID() => Adding the loco\n", uid);
+     if (!Add_Detected_Loco_to_EEPROM(Z21Adr)) return 0xFFFF;                                                 // 15.03.22:
+     return Lok_Cnt-1;
+  #endif
   return 0xFFFF; // Not found
 }
 
@@ -345,9 +364,11 @@ uint16_t Find_Index_from_ID(uint16_t uid)
  #error "ERROR: SID Range is not defined in EXT_ADR_RANGE_*_TYP"
 #endif
 
+
 //--------------------------------------------
 uint16_t Find_Index_from_Adr_All(uint16_t Adr)
 //--------------------------------------------
+// Is called if the adress has no special offset
 {
   uint16_t i;
   for (i = 0; i < Lok_Cnt; i++)
@@ -355,13 +376,19 @@ uint16_t Find_Index_from_Adr_All(uint16_t Adr)
       //char Name[LOK_NAME_LEN+1]; Dprintf("%2i %-16s %4i\n", i, Read_Lok_Name_from_EEPROM(i, Name), Read_Lok_Adr_from_EEPROM(i)); // Debug
       if (Read_Lok_Adr_from_EEPROM(i) == Adr) return i;
       }
-  Dprintf("Error: Adr %i not found in Find_Index_from_Adr_All()\n", Adr);
-  return 0xFFFF; // Not found
+  Dprintf("Find_Index_from_Adr_All(%i)\n", Adr);
+  #if CREATE_NOT_FOND_LOCOS
+     Dprintf("Error: Adr %i not found in Find_Index_from_Adr_All() => Adding the loco\n", Adr);
+     if (!Add_Detected_Loco_to_EEPROM(Adr)) return 0xFFFF;                                                    // 15.03.22:
+     return Lok_Cnt-1;
+  #else
+     return 0xFFFF; // Not found
+  #endif
 }
 
-//-----------------------------------------------------------------------------------------------------------------
-uint16_t Find_Index_from_Adr_in_uid_Range(uint16_t Adr, uint16_t uid_Start, uint16_t uid_End, uint8_t DebugMsg = 1)
-//-----------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------
+uint16_t Find_Index_from_Adr_in_uid_Range(uint16_t Z21Adr, uint16_t Adr, uint16_t uid_Start, uint16_t uid_End, uint8_t AddNew)
+//----------------------------------------------------------------------------------------------------------------------------
 {
   uint16_t i;
   for (i = 0; i < Lok_Cnt; i++)
@@ -370,8 +397,18 @@ uint16_t Find_Index_from_Adr_in_uid_Range(uint16_t Adr, uint16_t uid_Start, uint
       uint16_t uid = Read_Lok_uid_from_EEPROM(i);
       if (Read_Lok_Adr_from_EEPROM(i) == Adr && uid_Start <= uid && uid <= uid_End) return i;
       }
-  if (DebugMsg) Dprintf("Error: Adr not found in Find_Index_from_Adr_in_uid_Range(Adr:%i, %i - %i)\n", Adr, uid_Start, uid_End);
-  return 0xFFFF; // Not found
+  #if CREATE_NOT_FOND_LOCOS
+    if (AddNew)
+         {
+         Dprintf("Find_Index_from_Adr_in_uid_Range(%i, %i, %04X, %04X\n", Z21Adr, Adr, uid_Start, uid_End);
+         Dprintf("Error: Adr not found in Find_Index_from_Adr_in_uid_Range(Adr:%i, %i - %i) => Adding the loco\n", Adr, uid_Start, uid_End);
+         if (!Add_Detected_Loco_to_EEPROM(Z21Adr)) return 0xFFFF;                                                    // 15.03.22:
+         return Lok_Cnt-1;
+         }
+    else return 0xFFFF;
+  #else
+    return 0xFFFF; // Not Found
+  #endif
 }
 
 //----------------------------------------
@@ -382,11 +419,11 @@ uint16_t Find_Index_from_Adr(uint16_t Adr)
   if   (   Adr <= EXT_ADR_RANGE_END_1) // Range  1
        {
        #if EXT_ADR_RANGE_1_TYP == EA_TYP_MFX
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, 0x4000, 0x7FFF, 0);  // First check if there is a MFX Loco
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr, 0x4000, 0x7FFF, 0);  // First check if there is a MFX Loco
        #elif EXT_ADR_RANGE_1_TYP == EA_TYP_DCC
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, 0xC000, 0xFFFF, 0);  // First check if there is a DCC Loco
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr, 0xC000, 0xFFFF, 0);  // First check if there is a DCC Loco
        #else
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr,      0, 0x03FF, 0);  // First check if there is a MM  Loco
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr,      0, 0x03FF, 0);  // First check if there is a MM  Loco
        #endif
        if (Ix == 0xFFFF) // Not found?
           Ix = Find_Index_from_Adr_All(Adr);
@@ -394,36 +431,37 @@ uint16_t Find_Index_from_Adr(uint16_t Adr)
   else if (Adr <= EXT_ADR_RANGE_END_2) // Range 2
        {
        #if   EXT_ADR_RANGE_2_TYP == EA_TYP_MFX
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_2, 0x4000, 0x7FFF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_2, 0x4000, 0x7FFF, 1);
        #elif EXT_ADR_RANGE_2_TYP == EA_TYP_DCC
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_2, 0xC000, 0xFFFF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_2, 0xC000, 0xFFFF, 1);
        #elif EXT_ADR_RANGE_2_TYP == EA_TYP_MM
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_2, 0,      0x03FF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_2, 0,      0x03FF, 1);
        #else
-                                                 Ix = Find_Index_from_ID(              Adr - EXT_ADR_RANGE_2 + 0x4000);
+                                                 Ix = Find_Index_from_ID(              Adr, Adr - EXT_ADR_RANGE_2 + 0x4000);
        #endif
        }
   else if (Adr <= EXT_ADR_RANGE_END_3) // Range 3
        {
        #if   EXT_ADR_RANGE_3_TYP == EA_TYP_MFX
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_3, 0x4000, 0x7FFF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_3, 0x4000, 0x7FFF, 1);
        #elif EXT_ADR_RANGE_3_TYP == EA_TYP_DCC
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_3, 0xC000, 0xFFFF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_3, 0xC000, 0xFFFF, 1);
        #elif EXT_ADR_RANGE_3_TYP == EA_TYP_MM
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_3, 0,      0x03FF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_3, 0,      0x03FF, 1);
        #else
-                                                 Ix = Find_Index_from_ID(              Adr - EXT_ADR_RANGE_3 + 0x4000);
+          Dprintf("Adr: %i => %i = 0x%04X\n", Adr, Adr - EXT_ADR_RANGE_3 + 0x4000, Adr - EXT_ADR_RANGE_3 + 0x4000);
+                                                 Ix = Find_Index_from_ID(              Adr, Adr - EXT_ADR_RANGE_3 + 0x4000);
        #endif
        }
   else {                               // Range 4
        #if   EXT_ADR_RANGE_4_TYP == EA_TYP_MFX
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_4, 0x4000, 0x7FFF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_4, 0x4000, 0x7FFF, 1);
        #elif EXT_ADR_RANGE_4_TYP == EA_TYP_DCC
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_4, 0xC000, 0xFFFF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_4, 0xC000, 0xFFFF, 1);
        #elif EXT_ADR_RANGE_4_TYP == EA_TYP_MM
-                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr - EXT_ADR_RANGE_4, 0,      0x03FF);
+                                                 Ix = Find_Index_from_Adr_in_uid_Range(Adr, Adr - EXT_ADR_RANGE_4, 0,      0x03FF, 1);
        #else
-                                                 Ix = Find_Index_from_ID(              Adr - EXT_ADR_RANGE_4 + 0x4000);
+                                                 Ix = Find_Index_from_ID(              Adr, Adr - EXT_ADR_RANGE_4 + 0x4000);
        #endif
        }
 
@@ -479,7 +517,7 @@ uint16_t Find_Lokname_in_Lok_Data(const char *Lokname)
   for (i = 0; i < MAX_LOK_DATA && i < Lok_Cnt && *Read_Lok_Name_from_EEPROM(i, Name); i++)
       if (strcmp(Name, Lokname) == 0) return i;
 
-  return 0xFF;
+  return 0xFFFF;
 }
 
 
@@ -565,6 +603,31 @@ uint16_t Read_Var_Dec(char* &p, const char* VarName)
   return 0xFFFF & Val;
 }
 
+//--------------------------
+void Rename_Loco(char *Line)                                                                                  // 15.03.22:
+//--------------------------
+{
+  char* token = strtok(Line, "\t");
+  if (token == NULL) return;
+  uint16_t Nr;
+  char Name[LOK_NAME_LEN+1];
+  for (Nr = 0; Nr < Lok_Cnt; Nr++)
+    {
+    if (strcmp(token, Read_Lok_Name_from_EEPROM(Nr, Name)) == 0) break;
+    }
+  if (Nr >= Lok_Cnt)
+     {
+     Dprintf("Error: Loco '%s' not found\n", token);
+     return ;
+     }
+  if ((token = strtok(NULL, " ")) != NULL)
+     {
+     Write_Lok_Name_to_EEPROM(Nr, token);
+     EEPROM_Loko_Write();
+     Dprintf("ren ok\n");
+     }
+}
+
 //-------------------------------
 void Define_Functions(char *Line)
 //-------------------------------
@@ -600,6 +663,7 @@ void Define_Functions(char *Line)
       if (FktNr > 31) break;
       }
   Write_FktTyp_to_EEPROM(Nr, FktArr);
+  EEPROM_Loko_Write();                                                                                        // 15.03.22:
   Dprintf("fkt ok\n");
 }
 
@@ -700,13 +764,6 @@ void Add_Lokdetails_to_Array(char *Buffer, uint16_t LokNr, const char *Name)
   Write_Lok_Adr_to_EEPROM(LokNr, Adr);
 
   //unsigned long mfxuid = Read_Var_Hex(p, ".mfxuid=0x"); Dprintf("Adr: %3i uid: %04X mfxuid: %08lX %10lu %s\n", Adr, uid, mfxuid, mfxuid, Name); // Debug
-
-//  if (Create_CSV)
-//     {
-//     std::string Icon = "";
-//     if (Read_Var_Str(Buffer, ".icon='", Icon))
-//        Dprintf(".icon=%s'\n", Icon.c_str());
-//     }
 
   uint8_t FktArr[32];
   Read_FuncTypes(Buffer, FktArr, Name);
@@ -973,7 +1030,7 @@ void Print_Lok_Data(uint8_t Mode = 1)
             && z21_Adr == Sort_Dat[j-1].Adr)  // Prior loco has got the same adress
             {
             if (     uid <= 0x03FF)   z21_Adr += EXT_ADR_OFFS_MM;                   // MM  loco
-            else if (uid < 0x7FFF)   z21_Adr  = EXT_ADR_OFFS_SDI + (uid - 0x4000); // MFX loco
+            else if (uid <  0x7FFF)   z21_Adr  = EXT_ADR_OFFS_SDI + (uid - 0x4000); // MFX loco               // Warum hier nicht "<= 0x7FFF" ?
             else                      z21_Adr += EXT_ADR_OFFS_DCC;                  // DCC loco
             }
          char z21_str[10];
@@ -1041,7 +1098,8 @@ uint8_t Read_Lok_Config_from_CAN(CAN_CLASS *can)
 //----------------------------------------------
 // Mit diesem Befehl kann man die Loknamen und die zugehoerige
 // uid Adresse aus der MS2 oder der CS2/3 abfragen.
-// Dazu muss die neue Software Version 3.121 auf der MS2 installiert sein.
+// Dazu muss die neue Software Version 3.121 oder großer (getestet mit 3.148)
+// auf der MS2 installiert sein.
 // Die Software erkennt man daran, dass unten bis zu 40 Lokomotiven stehen koennen
 // Bei der Version 2.x koennen nur 11 Lokomotiven verwendet werden.
 // Für die MS2 und die CS2/3 müssen unterschiedliche Anfragen verwendet werden.
@@ -1168,7 +1226,7 @@ uint8_t Read_Lok_Config_from_CAN(CAN_CLASS *can)
   if (Res < 0) Lok_Cnt = 0;
 
   Set_Status_LED(0);
-  Write_Lok_Cnt_to_EEPROM(Lok_Cnt);
+  //Write_Lok_Cnt_to_EEPROM(Lok_Cnt);
 
   Print_Lok_Data(2);
 
@@ -1177,4 +1235,59 @@ uint8_t Read_Lok_Config_from_CAN(CAN_CLASS *can)
   DisplayStart_in_xx_ms(60*1000);
   return 1;
 }
+
+#if CREATE_NOT_FOND_LOCOS
+//--------------------------------------------------
+uint8_t Add_Detected_Loco_to_EEPROM(uint16_t Z21Adr)
+//--------------------------------------------------
+// Is called if a unknown loco is detected in Find_Index_from_Adr()
+{
+  if (Lok_Cnt >= MAX_LOK_DATA) return 0;
+
+  // Die Adresse kommt von der Z21 App.
+  // Standard Bereiche:
+  //    1 - 4000 (MFX), DCC oder MM
+  // 4001 - 8000 DCC    Adr: Z21Adr - 4000  uid: 0xC000 + Adr
+  // 8001 - 9000 MFX    Adr: ?              uid: 0x4000 + Z21Adr - 8000
+  // 9001 - 9255 MM     Adr: Z21Adr - 9000  uid: Adr
+  //
+  // Dummerweise können die Bereiche konfiguriert werden
+  // Ich mache es jetzt erst mal für den Fall, das
+#if EXT_ADR_RANGE_1_TYP != EA_TYP_MFX || EXT_ADR_RANGE_2_TYP != EA_TYP_DCC || EXT_ADR_RANGE_3_TYP != EA_TYP_SID  || EXT_ADR_RANGE_4_TYP  != EA_TYP_MM
+   #error "Currently not supported adress range combination!"
+#endif
+  uint16_t Adr, uid;
+  const char *TypP;
+  if (     Z21Adr <= EXT_ADR_RANGE_END_1)  { Adr = Z21Adr;                     uid = 0xC000 + Adr; TypP = "DCC"; } // <= 4000: Map as DCC
+  else if (Z21Adr <= EXT_ADR_RANGE_END_2)  { Adr = Z21Adr-EXT_ADR_RANGE_END_1; uid = 0xC000 + Adr; TypP = "DCC"; } // <= 8000: Map as DCC
+  else if (Z21Adr <= EXT_ADR_RANGE_END_3)  { Adr = Z21Adr-EXT_ADR_RANGE_END_2; uid = 0x4000 + Adr; TypP = "MFX"; } // <= 9000: Map as MFX
+  else                                     { Adr = Z21Adr-EXT_ADR_RANGE_END_3; uid =          Adr; TypP = "MM";  } // <= 9255: Map as MM
+
+  Dprintf("Add_Detected_Loco_to_EEPROM(%i) Adr %i uid %04X\n", Z21Adr, Adr, uid); // Debug
+
+  char Name[20], Sufix = 'A';
+  do // Check if the name already exists
+    {
+    if (Sufix == 'A')
+         sprintf(Name, "New %s %i",    TypP, Z21Adr);
+    else sprintf(Name, "New %s %i %c", TypP, Z21Adr, Sufix);
+    Sufix++;
+    if (Sufix > 'Z') { Dprintf("Error Sufix > 'Z'\n"); return 0; }
+    } while (Find_Lokname_in_Lok_Data(Name) != 0xFFFF);
+
+  Write_Lok_Name_to_EEPROM(Lok_Cnt, Name);
+  uint16_t LokNr = Lok_Cnt++;
+
+  Write_Lok_Adr_to_EEPROM(LokNr, Adr);
+  Write_Lok_uid_to_EEPROM(LokNr, uid);
+
+  uint8_t FktArr[32];
+  for (uint8_t i = 0; i < 32; i++)
+    FktArr[i] = 50+i;
+  Write_FktTyp_to_EEPROM(LokNr, FktArr);
+  EEPROM_Loko_Write();
+  return 1;
+}
+#endif // CREATE_NOT_FOND_LOCOS
+
 #endif // USE_CAN

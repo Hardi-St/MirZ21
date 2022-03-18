@@ -73,6 +73,6 @@ REN MirZ21.zip MirZ21.z21
 
 REM MEmu "Tablet" Downloads directory
 if Exist "C:\Users\Hardi\Downloads\MEmu Download\" Copy MirZ21.z21 "C:\Users\Hardi\Downloads\MEmu Download\"
-
+if Exist "C:\Users\Hardi\Nox_share\Download\"      Copy MirZ21.z21 "C:\Users\Hardi\Nox_share\Download\"
 
 

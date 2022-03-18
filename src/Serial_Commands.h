@@ -13,6 +13,7 @@ const char CmdHelp[] PROGMEM =
     "read        Read all loko data\n"
     "list        List al loko data (list 0 = raw)\n"
     "fkt         Define the loco funktions (Name<TAB>nr nr ...)\n"
+    "ren         Rename a loko (OldName<TAB>NewName)\n"
     #if TEST_LOCO_SELECTION
     "adr Nr a    Set the adress for a loco for tests (uid for MM and DCC is corrected)\n"
     "uid Nr u    Set the uid for a loco for tests\n"
@@ -97,7 +98,7 @@ void Restart()
   #if defined(ESP8266_MCU) || defined(ESP32_MCU)
       ESP.restart();
   #else
-      #error "Restart function not defined for theis processor at the moment ;-("
+      #error "Restart function not defined for this processor at the moment ;-("
   #endif
 }
 
@@ -176,6 +177,7 @@ void SerialCmd_loop()
         { // Full message received...
         message[message_pos] = '\0'; // Add null character to string
 
+        delay(20); // To receive the '\n'
         if (Serial.available() && Serial.peek() == '\n') Serial.read(); // Remove '\n' because this will be interpreted as abort when
                                                                         // reading the loco data in Check_Abort_Button_or_SerialChar()
         if (ReqAll > 0)
@@ -251,6 +253,7 @@ void SerialCmd_loop()
         else If_Msg_Start("list")    Print_Lok_Data();
         else If_Msg_Start("read")    Read_Lok_Config_from_CAN(&can);
         else If_Msg_Start("fkt ")    Define_Functions(MsgPar);
+        else If_Msg_Start("ren ")    Rename_Loco(MsgPar);
 
 
     #if SPY_CAN_CONFIG_FILE

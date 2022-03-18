@@ -84,25 +84,64 @@
 #elif defined(ESP8266_MCU)
 // ********************************** ESP8266_MCU ****************************
 /*
+
  Pins for the Z21_to_Maerklin Bridge
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                            _________________
-                           /  ____   _   _   \
-                           |  | | |_| |_| |  |
-                           |  | |         |  |
-                       RST-|  ,___________,TX|-GPIO1  TXD0
-            Button    ADC0-|A0|           |RX|-GPIO3  RXD0
-         / -   CS   GPIO16-|D0|           |D1|-GPIO5  SCL   -- 0.96" OLED
-  CAN BUS     SCLK  GPIO14-|D5|  ESP8266  |D2|-GPIO4  SDA   -- Display
-  MCP2515     MISO  GPIO12-|D6|           |D3|-GPIO0  FLASH -- IR-Receiver
-         \ -  MOSI  GPIO13-|D7|___________|D4|-GPIO2        -- (Buildin) LED
-             Piezo  GPIO15-|D8               |-GND
-                      3.3V-|                 |-5V
-                           '--, Wemos D1 Mini|
-                            ==|   ____       |
-                              '---    -------'
- */
+                         Shottky                                                              Attention:
+                         1N5819                       _________________                       Jumers at the 1.3"
+    Attention:                                       /  ____   _   _   \                      display have to be
+    Pin order doesn't      3.3V                      |  | | |_| |_| |  |                      set correctly
+    match with the          |                        |  | |         |  |                      Otherwise + and GND
+    CAN module             _|_                   RST-|  ,___________,TX|-GPIO1  TXD0          are swapped!
+                           /_\   .------------- ADC0-|A0|           |RX|-GPIO3  RXD0          .-------------.
+           / -   CS  -------|----|------------GPIO16-|D0|           |D1|-GPIO5  SCL   --------| OLED Display|
+    CAN BUS     SCLK ------ |----|------------GPIO14-|D5|  ESP8266  |D2|-GPIO4  SDA   --------'-------------'
+    MCP2515     MISO -[100]-o----|------------GPIO12-|D6|           |D3|-GPIO0  FLASH -------- IR-Receiver (TSSP 4P38 oder TSOP 4836)
+           \ -  MOSI ------------|------------GPIO13-|D7|___________|D4|-GPIO2  (Buildin) LED --Vcc         ~~~~~~~~~
+                                 |          .-GPIO15-|D8               |-GND                                Im Steckbrett eingebaut
+                                 o-[1k]-----|-- 3.3V-|                 |-5V
+    The ISO CAN Module           |       \ _|+       '--, Wemos D1 Mini|                       Der IR Empf‰nger kann auch an D4 angeschlossen werden
+    has to be powered           \   Piezo |_|     Rst ==|   ____       |                       Dann flackert die LED automatisch mit. Sie kann aber nicht
+    with 5V!                     \       /  |           '---    -------'                       Anderweitig genutzt werden.
+                                _|_        _|_                                                 Getestet mit: ...IRremoteESP8266\examples\IRrecvDemo
 
+   CAN Kabel von MS2
+   M‰rklin E146781
+    CAN H  Orange   Sub-D 7
+    CAN L  Braun    Sub-D 2
+    GND    Schwarz  Sub-D 3, 6
+    +18V   Rot      Sub-D 9
+
+ Large ESP8266 Modul
+ ~~~~~~~~~~~~~~~~~~~
+
+                                                    ^   ^ 3.3V
+                                    TSSP 4P38 .___. |   |
+       ^                              oder    |( )| | (LED)
+      ,|,     _________________     TSOP 4836 |___| |  ,|,
+      |1|    /    _   _   __   \               |||__|  | | 100
+      |K|   /    | |_| |_|      \              ||      |_|    3.3V       .-------------.  Attention:
+       |    |    |________      |              |'-GND   |      ^   GND---|    OLED     |  Jumers at the 1.3"
+       o--- |A0  ,---------,  D0| GPIO16 CS  --|--------|--.   o---------|    1.3 "    |  display have to be
+       |    |rev |         |  D1| GPIO5  SCL --|--------|--|---|---------|     or      |  set correctly
+       |    |rev | ESP8266 |  D2| GPIO4  SDA --|--------|--|---|---------|    0.96"    |  Otherwise + and GND
+       o    |rev |         |  D3| GPIO0  IR  --'        |  |   |         '-------------'  are swapped!
+      /     |rev |         |  D4| GPIO2  LED -----------'  |  _|_         Shottky
+     /      |rev |_________| 3V3|                          |  /_\         1N5819
+       |    |rev             GND|                          |   |         .-----------.
+      _|_   |GND              D5| GPIO14 SCLK -------------|---|---------|  OptoIso  |    The ISO CAN Module
+            |3V3              D6| GPIO12 MISO -------------|---o--[100]--|  MCP5215  |    has to be powered
+            |GND  NODEMCU     D7| GPIO13 MOSI -------------|-------------|    CAN    |    with 5V! The standard
+            |3V3  DEVKIT 0.9  D8| GPIO15 Piezo--.          '-------------|   Modul   |    module is connected
+            |EN               RX| GPIO3        +|_./                     '-----------'    to 3.3V.
+            |RST              TX| GPIO1         |_|                    Attention:
+            |GND             GND|               |  \                   Pin order doesn't  CAN Kabel von MS2
+            |5V              3V3|              _|_                     match with the     M‰rklin E146781
+            |    # ,_____, #    |                                      CAN module          CAN H  Orange   Sub-D 7
+            '------| USB |------'                                                          CAN L  Braun    Sub-D 2
+                   '-----'                                                                 GND    Schwarz  Sub-D 3, 6
+                                                                                           +18V   Rot      Sub-D 9
+*/
 #if defined(DCC)
   #error "Error: DCC must be disabled in the main program"
 #endif
@@ -124,7 +163,34 @@
 //--------------------------------------------------------------
 #elif defined(ESP32_MCU)
 //************************************ ESP32_MCU ************************************
+/*
 
+ Tests with the MobaLedLib Mainboard and a ESP32        CAN is connected Maerklin device   CAN Kabel von MS2
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  3 = CAN H                M‰rklin E146781
+  TSSP 4P38 .___.                                                 4 = CAN L                 CAN H  Orange   Sub-D 7
+    oder    |( )|                                                                           CAN L  Braun    Sub-D 2
+  TSOP 4836 |___|      ,----------,===============,---------------------,                   GND    Schwarz  Sub-D 3, 6
+             |||_5V__________,    |:             :'-----,          ___  |                   +18V   Rot      Sub-D 9
+             ||        |  ___|_   |:             :      |         | C | |
+          ,--+o-GND------|14 13|  |:             : ESP  '-------, | A | |   3" LCD Display 7920    SPI Display (12864B for 3D printers with ST7920 chip) (https://www.amazon.de/dp/B09SLXVH1P)
+          |  |         | |11 12|  |:             : Adapter      | | N | |   ~~~~~~~~~~~~~~~~~~~
+          |  |         | |10 9 |  |:             :   ,----------, '---' |       3 = VCC = SS = BL A
+          |  '--7------|-|-- 7    |:             :   |2 4 6 8 10|============== 4 = GND      = NL K
+    \._   |            | |6  5 |  |:             :   |1 3 5 7 9 |============== 7 = SCK
+     | |--'GND         | |4  3 |  |: ,---------, :---'----  ----'       |       9 = MOSI
+     |_|----------1----|-|-- 1 |  |: |         | :,---------,           |
+    /      +           | '-----'  |: | ESP 32  | :*    OLED |           |   Entweder OLED 0.96" / 1.3" oder 3" LCD Display
+    Piezo              | KEY_80   |: |         | :*    0.96"|           |   Das wird in Config.h definiert
+                       |          |: |         | :*     or  |           |
+                       |          |: |_________| :*     1.3"|           |
+                       |          '---------------'---------'           |
+                       |            ( )  ( )  ( )                       |
+                       |            [*]  [*]  [*]                       |
+                       |                                  Hauptplatine  |
+                       '------------------------------------------------'
+                                              LED
+                                             Button
+*/
 //Power:
 #define Z21ResetPin      25       // RESET-Button-Pin bei Neustart bet√§tigen um Standard IP zu setzten!      // 02.02.22:  Old: 36
                                   // Rechter Taster der MobaLedLib
@@ -161,7 +227,7 @@
 #define IR_RECEIVE_PIN   19       // ESP D19 = MobaLedLib KEY80 Pin 7 (Pin 13 = +5V, Pin 14 = GND) ----'|
                                   //                                   "MLL EXT OUT" Pin 8             _|_
 
-                                  // LB#7 =
+
 
 #define SPI_DISP_CLK     21       // Pins used for an SPI OLED Display
 #define SPI_DISP_DAT     22       // Connected to the I2C socket

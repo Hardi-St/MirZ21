@@ -332,13 +332,24 @@ void drawCursorVLine(uint16_t x0, uint16_t y0, uint16_t len)
 uint16_t Get_Lok_Nr()
 //-------------------
 {
-  switch (Loco_DispMode)
+  uint16_t Nr;
+  switch (Loco_DispMode) // 1: Märklin IR control, 3: TV IR control, 21: z21, 33: CAN
     {
-    case 1:  return Read_Ma_Lok_Nr_from_EEPROM(Act_Ma_Lok_Ix);
-    case 21:
-    case 33: return Ex_Lok_Nr;
-    default: return TV_Lok_Nr;
+    case 1:  Nr = Read_Ma_Lok_Nr_from_EEPROM(Act_Ma_Lok_Ix);
+             if (Nr >= Lok_Cnt)
+                {
+                Nr = Lok_Cnt -1;
+                Write_Ma_Lok_Nr_to_EEPROM(Act_Ma_Lok_Ix, Nr);
+                }
+             break;
+    case 21: // Z21
+    case 33: Nr = Ex_Lok_Nr; // CAN
+             if (Nr >= Lok_Cnt) Nr = Ex_Lok_Nr = Lok_Cnt  -1;
+             break;
+    default: Nr = TV_Lok_Nr;
+             if (Nr >= Lok_Cnt) Nr = TV_Lok_Nr = Lok_Cnt  -1;
     }
+  return Nr;
 }
 
 //-----------------------------------------------------------------------

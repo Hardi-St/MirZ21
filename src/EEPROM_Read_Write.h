@@ -346,7 +346,7 @@ void EEPROM_Set_Defaults()
    //----------------------
    {
      Dprintf("Pref EEPROM_Loko_Write()\n");
-
+     Write_Lok_Cnt_to_EEPROM(Lok_Cnt);                                                                        // 15.03.22:
      Preferences prefs;
      if (!prefs.begin(LOCO_NAMESPACE)) Err_Msg_prefs_begin();
 
@@ -462,7 +462,8 @@ void EEPROM_Set_Defaults()
    void EEPROM_Loko_Write()
    //----------------------
    {
-     //Dprintf("EEPROM_Loko_Write()\n");
+     Dprintf("EEPROM_Loko_Write()\n");
+     Write_Lok_Cnt_to_EEPROM(Lok_Cnt);                                                                        // 15.03.22:
      uint8_t *CompBuff = NULL;
      int32_t UsedSize = Compr_Lok_Data(All_EEPROM_Data, CompBuff, MAX_LOK_DATA_BYTES);
      if (UsedSize > 0)

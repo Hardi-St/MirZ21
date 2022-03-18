@@ -21,27 +21,6 @@
      Erase Flash: "Only Sketch"                         ?
      SSL Support: "All SLL ciphers (most compatible)"
 
-
- Pins for the Z21_to_Maerklin Bridge
- ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                         Shottky                                                              Attention:
-                         1N5819                       _________________                       Jumers at the 1.3"
-    Attention:                                       /  ____   _   _   \                      display have to be
-    Pin order doesn't      3.3V                      |  | | |_| |_| |  |                      set correctly
-    match with the          |                        |  | |         |  |                      Otherwise + and GND
-    CAN module             _|_                   RST-|  ,___________,TX|-GPIO1  TXD0          are swapped!
-                           /_\   .------------- ADC0-|A0|           |RX|-GPIO3  RXD0          .-------------.
-           / -   CS  -------|----|------------GPIO16-|D0|           |D1|-GPIO5  SCL   --------| OLED Display|
-    CAN BUS     SCLK ------ |----|------------GPIO14-|D5|  ESP8266  |D2|-GPIO4  SDA   --------'-------------'
-    MCP2515     MISO -[100]-o----|------------GPIO12-|D6|           |D3|-GPIO0  FLASH -------- IR-Receiver (TSSP 4P38 oder TSOP 4836)
-           \ -  MOSI ------------|------------GPIO13-|D7|___________|D4|-GPIO2  (Buildin) LED --Vcc         ~~~~~~~~~
-                                 |          .-GPIO15-|D8               |-GND                                Im Steckbrett eingebaut
-                                 o-[1k]-----|-- 3.3V-|                 |-5V
-    The ISO CAN Module           |       \ _|+       '--, Wemos D1 Mini|                       Der IR Empfänger kann auch an D4 angeschlossen werden
-    has to be powered           \   Piezo |_|     Rst ==|   ____       |                       Dann flackert die LED automatisch mit. Sie kann aber nicht
-    with 5V!                     \       /  |           '---    -------'                       Anderweitig genutzt werden.
-                                _|_        _|_                                                 Getestet mit: ...IRremoteESP8266\examples\IRrecvDemo
-
  CAN Kabel von MS2                       Attention: The Pins GPIO0, GPIO2 and GPIO15
  Märklin E146781                                    select the boot selection.
   CAN H  Orange   Sub-D 7                           - GPIO0 and GPIO2 need to be pulled up to Vcc
@@ -59,34 +38,8 @@
  Es gibt (mindestens) zwei CAN Bibliotheken welche Interrupts unterstützen:
  - MCP2515-nb
  - PWFusion_Mcp2515
-                                                    ^   ^ 3.3V
-                                    TSSP 4P38 .___. |   |
-       ^                              oder    |( )| | (LED)
-      ,|,     _________________     TSOP 4836 |___| |  ,|,
-      |1|    /    _   _   __   \               |||__|  | | 100
-      |K|   /    | |_| |_|      \              ||      |_|    3.3V       .-------------.  Attention:
-       |    |    |________      |              |'-GND   |      ^   GND---|    OLED     |  Jumers at the 1.3"
-       o--- |A0  ,---------,  D0| GPIO16 CS  --|--------|--.   o---------|    1.3 "    |  display have to be
-       |    |rev |         |  D1| GPIO5  SCL --|--------|--|---|---------|     or      |  set correctly
-       |    |rev | ESP8266 |  D2| GPIO4  SDA --|--------|--|---|---------|    0.96"    |  Otherwise + and GND
-       o    |rev |         |  D3| GPIO0  IR  --'        |  |   |         '-------------'  are swapped!
-      /     |rev |         |  D4| GPIO2  LED -----------'  |  _|_         Shottky
-     /      |rev |_________| 3V3|                          |  /_\         1N5819
-       |    |rev             GND|                          |   |         .-----------.
-      _|_   |GND              D5| GPIO14 SCLK -------------|---|---------|  OptoIso  |    The ISO CAN Module
-            |3V3              D6| GPIO12 MISO -------------|---o--[100]--|  MCP5215  |    has to be powered
-            |GND  NODEMCU     D7| GPIO13 MOSI -------------|-------------|    CAN    |    with 5V! The standard
-            |3V3  DEVKIT 0.9  D8| GPIO15 Piezo--.          '-------------|   Modul   |    module is connected
-            |EN               RX| GPIO3        +|_./                     '-----------'    to 3.3V.
-            |RST              TX| GPIO1         |_|                      Attention:
-            |GND             GND|               |  \                     Pin order doesn't
-            |5V              3V3|              _|_                       match with the
-            |    # ,_____, #    |                                        CAN module
-            '------| USB |------'
-                   '-----'
 
-
- Man könnte auch mehrere Widerstandskodierte Taster anschließen
+ - Man könnte auch mehrere Widerstandskodierte Taster anschließen
 
 
 
@@ -148,6 +101,7 @@
             - Corrected direction display on the OLED
             - IR function keys support momentary function
             - Display changes from CAN or IR directly on the Z21 app
+ 15.03.22:  - Creating unkonown locos received via CAN or LAN
 
  Adressbereiche
  ~~~~~~~~~~~~~~
@@ -193,40 +147,42 @@
 
  ToDo:
  ~~~~~
- - Eine Unbekannte DCC Lok vermutlich auch MM) kann ohne Eintrag in der MS2 gesteuert werden
-   Momentan leitet die MirZ21 die Befehle von der Z21 App aber nicht weiter weil die Lok
-   nicht gefunden wird.
-   - Lok automatisch anlegen (Wo? RAM/EEPROM)
-     uint16_t Find_Index_from_Adr(uint16_t Adr)
-   - Lok ohne Eintrag fahren
-     - Geht das?
-       - Status der Funktionstasten?
-     - Anzeige auf Display nicht möglich
-     - Nicht per IR Steuerbar
+ - Untersuchen ob das Feedback zur Z21 mit unserer Konfiguration geht. Hier ist doch mindestens
+   eine Adresse doppelt belegt.
+ - Die Geschwindigkeit einer "New MFX" Lok wird nicht zur Z21 App gemeldert. Eine änderung in der App
+   kommt aber auf dem CAN an.
+   Das geht aber auch nicht mehr bei einer Bekannten Lok (Rotfuchs)
+   Bei der Murnau geht es. Beides sind MFX Lokomotiven. Murnau:uid 4011, Rotfuchs:4006
+   Die Murnau ist als 109 in der App eingetragen, Rotfuchs als 8006
+   - Problem:
+     Eine Lok kann in der Z21 App über zwei Adressen angesprochen werden. Entweder über die
+     "DCC" Adresse oder über die Adresse mit Offset.
+     Rotfuchs war in der Z21 App mit der Adresse 8006 eingetragen. Also der MFX Nummer 6.
+     Erst als ich in in der App unter der "DCC" Adresse 74 angemeldet habe wurden Änderungen
+     am CAN Sofort angezeigt.
+     Bei der Murnau war bereits die kurze Adresse eingetragen. Darum gin es sofort.
+     - Es ist komfortabler wenn man die kurze Adresse eintragen kann.
+       Wenn eine Adresse von MFX und DCC/MM benutzt wird, dann geht das nicht.
+       Es geht auch nicht wenn die "DCC" Adresse nicht bekannt ist. Das tritt dann auf wenn
+       eine neue Lok per CAN erkannt wurde.
+       - Man könnte einfach die Änderungen an beide Adressen per LAN schicken.
+         Dabei muss aber geprüft werden ob die Adresse nicht breits anders belegt ist.
+         Wie macht man das?
+       - Man lernt welche Adresse die Z21 verwendet und antwortet immer auf dieser.
+         (In Var_Lok_Data[] sind noch zwei bits frei)
+         Es könnte aber sein, dass man was falsches lernt wenn
+       - Auf der "Langen" Adresse kann man bei DCC und MM immer Antworten.
+         Bei MFX ist das Problematisch weil es sein könnte, dass sich die MFX Adresse inzwischen
+         geändert hat.
+       - Die kurze Adresse kann nur dann verwendet werden wenn sie von keiner anderen
+         MFX Lok benutzt wird
 
- - Bei DCC / MM Lokomotiven immer den Offset verwenden da dieser automatisch erzeugt wird
-   Dann bleiben die MFX Adressen für die MFX Lokomotiven frei.
 
- - Erkennen wenn eine neue MFX Lok auf die Schienen gestellt wird
-   Die uid und Adresse der neuen Lok kann soll auf dem Display angezeigt
-   werden. Dann kann man die Lok von Hand in der Z21 App anlegen.
-   Dazu währe es gut, wenn immer eine zusätzliche Lok vorbereitet ist welche
-   man nur noch kopieren muss.
 
- - Steuern von unbekannten Lokomotiven und aufnahme in die Liste
-   Die Lok ist damit noch nicht in der Märklin Welt bekannt.
-   - Kann man sie trotzdem steuern?
-   - Kann sie über den CAN Bus angelegt werden?
-   - Die Lok hat erst mal keinen Namen. Wie wird die Zuordnung gemacht
-     In der Z21 wird die Lok über die Adresse angesprochen.
-     Bei Märklin wird der Namme verwendet.
-     Was ist wenn man den Namen im Excel ändert
-   - Das besste währe wenn man die Lok in der Märklin Welt anlegt. Dann geht alles den normalen weg.
-     Hier würde der Lokkarten Simulator helfen
-   - Wo gibt man den Namen ein?
-     - Märklin
-     - Excel
-     - Eigene App welchemit der MirZ21 redet
+ - "update" Funktion mit der nur die Namen der "New" Lokomotiven aktualisiert werden wenn
+   sie in der Märklin Welt vorhanden sind. Neue Lokomotiven welche über die Z21 angelegt wurden
+   bleiben erhalten.
+ - Umbenennen eine Lok von Excel aus.
 
  - Rückmelder an Z21 weiter leiten
 
@@ -236,6 +192,10 @@
 
  - Wie viele Apps können sich verbinden?
    Anzahl auf 20 erhöhen
+   Wird das hier einegstellt?
+     WiFi.softAP(ssidAP.c_str(), passAP.c_str(), kanalAP, false, 8);    //Start AcessPoint with 8 number of clients
+   oder hier?
+     #define LANmaxIP 20
 
  - Aus Irgend einem Grund Funktioniert das entzippen der ZLib Dateien nicht mehr mit
    der aktuellen Version (23.02.22). Auch dann nicht wenn man MAX_LOK_DATA auf 65 setzt.
@@ -427,7 +387,7 @@ uint16_t      Central_Ver   = 0;
 
 //uint8_t       Loco_Speeds[MAX_LOK_DATA];
 
-typedef struct  // Variable lok data which are stored in the RAM and EEPROM
+typedef struct  // Variable lok data which are stored in the RAM (and EEPROM*)   (*Only in the MS2_Bridge progam))
   {
   uint16_t  Speed:10;
   uint16_t  Direction:2;
@@ -655,6 +615,7 @@ void Send_FktKey_to_LAN(uint8_t Index, uint8_t FktNr, uint8_t OnOff)
   byte packetBuffer[10] = { 0x0A,  0x00, 0x40, 0x00,  0xE4, 0xF8 };// 0x00,  0x2A,  0x96,  0x4B
 
   uint16_t Adr = Read_Lok_Adr_from_EEPROM(Index);
+  //Dprintf("Send_FktKey_to_LAN: Adr=%i\n", Adr);
   packetBuffer[6] = (Adr >>8) & 0x3F;
   packetBuffer[7] =  Adr      & 0xFF;
   if (Adr >= 128) packetBuffer[6] |= 0xC0;
@@ -741,7 +702,7 @@ void Store_CAN_Data(byte CAN_ID, byte *rxBuf, byte len, uint8_t Send)
   if (len <= 4) return;
 
   // Store the actual states
-  uint8_t Index = Find_Index_from_ID(Get_UID(rxBuf));
+  uint8_t Index = Find_Index_from_ID(0, Get_UID(rxBuf));
   if (Index != 0xFFFF)
      {
      switch (CAN_ID)
@@ -940,7 +901,14 @@ uint8_t Check_Abort_Button_or_SerialChar(uint8_t &Old_Button)
 //------------------------------------------------------------
 {
   uint8_t Res = Check_Abort_Button(Old_Button);
-  if (Res == 0 && Serial.available() > 0) Res = 2;
+  if (Res == 0 && Serial.available() > 0)
+     {
+     uint8_t c = Serial.peek();
+     if (c == '\n')      Dprintf("Abort Chr: \\n");
+     else if (c == '\r') Dprintf("Abort Chr: \\r");
+     else                Dprintf("Abort Chr: 0x%02X", c);
+     Res = 2;
+     }
   return Res;
 }
 
