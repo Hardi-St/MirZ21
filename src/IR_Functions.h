@@ -395,8 +395,9 @@ void Display_Single_Loko_on_LCD()
   Read_Lok_Name_from_EEPROM(Int_Lok_Nr, Name);
   char NrStr[10], TypStr[5], Adr_or_uid_Str[30] = "";
   sprintf(NrStr, "%i:", Int_Lok_Nr+1);
-  uint16_t Adr = Read_Lok_Adr_from_EEPROM(Int_Lok_Nr);
-  uint16_t uid = Read_Lok_uid_from_EEPROM(Int_Lok_Nr);
+  uint16_t DCC = Read_Lok_DCC_from_EEPROM(Int_Lok_Nr);
+  uint16_t Z21Adr = Read_Lok_Z21Adr_from_EEPROM(Int_Lok_Nr);
+  uint16_t uid = Z21Adr_to_uid(Z21Adr);
   Write_OLED("\25" "\14" "\37"); // verry small font 5, cls, don't show the screen now
 
 
@@ -410,11 +411,17 @@ void Display_Single_Loko_on_LCD()
     }
   display.setCursor(113,6);
   display.print(CtrlMode);
-
-  if (uid <= 0x03ff)      { strcpy(TypStr, "MM");  }
-  else if (uid <= 0x7FFF) { strcpy(TypStr, "MFX"); sprintf(Adr_or_uid_Str, "uid:%04X %-5i", uid, Adr); }
-  else                    { strcpy(TypStr, "DCC"); }
-  if (*Adr_or_uid_Str == '\0') sprintf(Adr_or_uid_Str, "Adr:%-5i", Adr);
+  #if 1  // Show Z21Adr
+     if (uid <= 0x03ff)      strcpy(TypStr, "MM");
+     else if (uid <= 0x7FFF) strcpy(TypStr, "MFX");
+     else                    strcpy(TypStr, "DCC");
+     sprintf(Adr_or_uid_Str, "z.%-4i d.%-4i", Z21Adr, DCC);
+  #else  // Show uid if MFX
+     if (uid <= 0x03ff)      { strcpy(TypStr, "MM");  }
+     else if (uid <= 0x7FFF) { strcpy(TypStr, "MFX"); sprintf(Adr_or_uid_Str, "uid:%04X %-5i", uid, DCC); }
+     else                    { strcpy(TypStr, "DCC"); }
+     if (*Adr_or_uid_Str == '\0') sprintf(Adr_or_uid_Str, "Adr:%-5i", DCC);
+  #endif
   display.setCursor(0, 6);
   Write_OLED("%-5s%-3s %s\24\37", NrStr, TypStr, Adr_or_uid_Str); // '\24' = Font 4  (Achtung keine Zeichen mit Unterlänge wie "y" verwenden)
 

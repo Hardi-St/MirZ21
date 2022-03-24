@@ -173,6 +173,15 @@ int8_t Decompr_Lok_Data(uint8_t* &Buff, All_EEPROM_Data_t &e)
   for (uint16_t i = 0; i < e.Lok_Cnt; i++)
     {
     Const_Lok_Data_t *Ld = &e.Const_Lok_Data[i];
+    Ld->Z21Adr = Read_uint16(p);
+    if (Ld->Z21Adr >= Z21_ADR_MFX_START )
+         Ld->DCC = Read_uint16(p);                      // For MFX the DCC adress is stored separately
+    else {
+         if (Ld->Z21Adr >= Z21_ADR_MM_START)
+              Ld->DCC = Ld->Z21Adr - Z21_ADR_MM_START;  // MM
+         else Ld->DCC = Ld->Z21Adr;                     // DCC
+         }
+    /*  Old: 18.03.22:
     uint16_t uid = Ld->uid = Read_uint16(p);                                            // Dprintf("Uid(%i)=%04X\n", i, uid);
     if (uid >= 0x4000 && uid <= 0x7FFF)
          Ld->Adresse = Read_uint16(p);
@@ -181,6 +190,7 @@ int8_t Decompr_Lok_Data(uint8_t* &Buff, All_EEPROM_Data_t &e)
                Ld->Adresse = uid;
          else  Ld->Adresse = uid - 0xC000;
          }
+    */
     Used_Func_Arr[i] = p++;
     }
 
@@ -244,9 +254,13 @@ uint16_t Calc_Memory_Usage(All_EEPROM_Data_t &e, uint16_t &WithOutFunc, uint16_t
       uint16_t NMem = Get_Lok_Name_Len(Ld->Name);        // Lok names
       Mem += NMem;
       NameMem += NMem;
+      Mem += 2;                                          // Z21Adr
+      if (Ld->Z21Adr >= Z21_ADR_MFX_START) Mem += 2;
+
+      /*                                                                                                      // 18.03.22: Old
       uint16_t uid = Ld->uid;
-      Mem += 2;                                          // uid
       if (uid >= 0x4000 && uid <= 0x7FFF) Mem += 2;      // Adresse
+      */
       Mem++;                                             // Used Functions
       uint8_t UsedFkt = Get_used_Functions(Ld->FktTyp);
       FuncMem += UsedFkt;
@@ -267,9 +281,12 @@ uint16_t MaxLoco_WithoutName(All_EEPROM_Data_t &e, size_t Max_Res_Size)
       if (i % 2 == 0) Mem++;
       Const_Lok_Data_t *Ld = &e.Const_Lok_Data[i];
       Mem++;                                             // First char of the loco name
+      Mem += 2;                                          // Z21Adr
+      if (Ld->Z21Adr >= Z21_ADR_MFX_START) Mem += 2;
+      /*                                                                                                      // 18.03.22:  Old
       uint16_t uid = Ld->uid;
-      Mem += 2;                                          // uid
       if (uid >= 0x4000 && uid <= 0x7FFF) Mem += 2;      // Adresse
+      */
       Mem++;                                             // Used Functions
       if (Mem > Max_Res_Size) break;
       }
@@ -307,9 +324,14 @@ int32_t Compr_Lok_Data(All_EEPROM_Data_t &e, uint8_t* &Res, size_t Max_Res_Size)
     WDT_RESET();                                                                        // Dprintf("i=%i\n", i);
 
     Const_Lok_Data_t *Ld = &e.Const_Lok_Data[i];
+
+    Store_uint16(p, Ld->Z21Adr);
+    if (Ld->Z21Adr >= Z21_ADR_MFX_START) Store_uint16(p, Ld->DCC);
+    /* 18.03.22:
     uint16_t uid = Ld->uid; // uid
     Store_uint16(p, uid);                                                               // Dprintf("uid=%04X\n", uid);
     if (uid >= 0x4000 && uid <= 0x7FFF) Store_uint16(p, Ld->Adresse);  // Adresse
+    */
     Used_Func_Arr[i] = p;
     *(p++) = 100 + Get_used_Functions(Ld->FktTyp);  // Functions
                                                                                         // Dprintf("Used_Func_Arr[%i]=%i\n", i, (int)*Used_Func_Arr[i]);
@@ -374,7 +396,7 @@ void Test_Compr_Lok_Data(All_EEPROM_Data_t &e)
   for (uint16_t i = 0; i < e.Lok_Cnt; i++) // Debug
     {
     Const_Lok_Data_t *Ld = &Re->Const_Lok_Data[i];
-    char Name[LOK_NAME_LEN+1]; memcpy(Name, Ld->Name, LOK_NAME_LEN); Name[LOK_NAME_LEN] = '\0'; Dprintf("%4i %04X %3i %s\n", e.Const_Lok_Data[i].Adresse, e.Const_Lok_Data[i].uid, i, Name);
+    char Name[LOK_NAME_LEN+1]; memcpy(Name, Ld->Name, LOK_NAME_LEN); Name[LOK_NAME_LEN] = '\0'; Dprintf("%4i %04X %3i %s\n", e.Const_Lok_Data[i].DCC, e.Const_Lok_Data[i].Z21Adr, i, Name);
     }
 
   Dprintf("Compare %i\n", memcmp(&e, Re, sizeof(All_EEPROM_Data_t))); // Compare

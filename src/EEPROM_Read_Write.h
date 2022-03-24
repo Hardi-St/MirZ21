@@ -116,7 +116,52 @@ void Write_Lok_Name_to_EEPROM(uint16_t Nr, const char *Name)
   memset(All_EEPROM_Data.Const_Lok_Data[Nr].Name, 0, sizeof(All_EEPROM_Data.Const_Lok_Data[0].Name)); // fill the unused chars with 0 to get a better compression
   strncpy(All_EEPROM_Data.Const_Lok_Data[Nr].Name, Name, sizeof(All_EEPROM_Data.Const_Lok_Data[0].Name));
 }
+//-----------------------------------------------
+uint16_t Read_Lok_Z21Adr_from_EEPROM(uint16_t Nr)
+//-----------------------------------------------
+{
+  Check_and_Correct_Lok_Nr_Read(Nr);
+  uint16_t ret = All_EEPROM_Data.Const_Lok_Data[Nr].Z21Adr;
+  #ifdef DEBUG_LOK2EEPROM_R
+    Dprintf("Read_Lok_Z21Adr_from_EEPROM[%i]=%X\n",Nr, ret);
+  #endif
+  return ret;
+}
 
+//-----------------------------------------------------------
+void Write_Lok_Z21Adr_to_EEPROM(uint16_t Nr, uint16_t Z21Adr)
+//-----------------------------------------------------------
+{
+  Check_and_Correct_Lok_Nr_Write(Nr);
+  All_EEPROM_Data.Const_Lok_Data[Nr].Z21Adr = Z21Adr;
+  #ifdef DEBUG_LOK2EEPROM_W
+    Dprintf("Write_Lok_Z21Adr_to_EEPROM[%i]=%X\n",Nr, Z21Adr);
+  #endif
+}
+
+//-----------------------------------------------------
+void Write_Lok_DCC_to_EEPROM(uint16_t Nr, uint16_t DCC)
+//-----------------------------------------------------
+{
+  Check_and_Correct_Lok_Nr_Write(Nr);
+  All_EEPROM_Data.Const_Lok_Data[Nr].DCC = DCC;
+  #ifdef DEBUG_LOK2EEPROM_W
+    Dprintf("Write_Lok_DCC_to_EEPROM[%i]=%X\n",Nr, DCC);
+  #endif
+}
+
+//--------------------------------------------
+uint16_t Read_Lok_DCC_from_EEPROM(uint16_t Nr)
+//--------------------------------------------
+{
+  Check_and_Correct_Lok_Nr_Read(Nr);
+  uint16_t DCC = All_EEPROM_Data.Const_Lok_Data[Nr].DCC;
+  #ifdef DEBUG_LOK2EEPROM_R
+    Dprintf("Read_Lok_DCC_from_EEPROM[%i]=%X\n",Nr, DCC);
+  #endif
+  return DCC;
+}
+/*                                                                                                            18.03.22:
 //-------------------------------------------
 uint16_t Read_Lok_uid_from_EEPROM(uint16_t Nr)
 //-------------------------------------------
@@ -139,7 +184,6 @@ void Write_Lok_uid_to_EEPROM(uint16_t Nr, uint16_t uid)
     Dprintf("Write_Lok_uid_to_EEPROM[%i]=%X\n",Nr, uid);
   #endif
 }
-
 //---------------------------------------------------------
 void Write_Lok_Adr_to_EEPROM(uint16_t Nr, uint16_t Adresse)
 //---------------------------------------------------------
@@ -162,7 +206,7 @@ uint16_t Read_Lok_Adr_from_EEPROM(uint16_t Nr)
   #endif
   return Adresse;
 }
-
+*/
 //----------------------------------------------------------
 void Write_FktTyp_to_EEPROM(uint16_t Nr, uint8_t FktTyp[32])
 //----------------------------------------------------------

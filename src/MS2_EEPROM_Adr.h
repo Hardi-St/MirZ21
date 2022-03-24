@@ -14,7 +14,7 @@
 
 int16_t Ma_Lok_Nr[4] = { 0, 1, 2, 3 };
 
-char Exp_VerStr_EEPROM[] = "MIRz21_0.1";   // This string is written to the EEPROM to check if the EEPROM data are valid.
+char Exp_VerStr_EEPROM[] = "MirZ21_0.1";   // This string is written to the EEPROM to check if the EEPROM data are valid.
                                            // Change the version number if the EEPROM layout is changed.
 
 #if defined(ESP8266)                             // The ESP32 uses the preferences library

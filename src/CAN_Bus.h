@@ -102,6 +102,19 @@
             - IR function keys support momentary function
             - Display changes from CAN or IR directly on the Z21 app
  15.03.22:  - Creating unkonown locos received via CAN or LAN
+ 18.03.22:  - New Z21 Adress definition
+              Prior the adresses from 1 to 4000 have been matched automatically to
+              the loco protocol. A loco could be adressed with this short adress and
+              with a adress which has a special offet which describes the type
+              (+4000: DCC, +8000: MFX, +9000: MM)
+              Unfortunately With this concept the feedback from the MirZ21 to the Z21 App
+              was only possible for one of the adresses. Eithe rthe short without offset
+              or the one with offset.
+              Therefore this concept was thrown away.
+              Now there is only one adrerss per loco.
+              - DCC: 1    - 8000 (No offset)
+              - MM:  8001 - 8255 (Offset 8000)
+              - MFX: 8256 - 9999 (Offset 8256)
 
  Adressbereiche
  ~~~~~~~~~~~~~~
@@ -147,6 +160,27 @@
 
  ToDo:
  ~~~~~
+ - Open Directory Button:
+   ---------------------------
+   Finished successfully
+   ---------------------------
+   Finished successfully :-)
+
+   The file 'MirZ21.z21' has to be send to the mobile phone or tablet per mail
+   or copied to the directory
+     rocoZ21-layouts
+   on the sd-card.
+
+ - Bei "Send Functions to MirZ21" kommt kein OK Button am Ende
+
+ - Testen
+   - Keine Lok definiert in MS2
+   - Alte MS2 Software 2.7
+     - Lok per MFX Erkennen und fahren ohne laden der Lokliste
+       - Molly wurde per MFX erkannt (aber als DCC Lok benutzt)
+     - Lok per DCC Steuern von dr Z21 App ohne dass sie bekannt ist
+ - Alte Teile Löschen
+
  - Untersuchen ob das Feedback zur Z21 mit unserer Konfiguration geht. Hier ist doch mindestens
    eine Adresse doppelt belegt.
  - Die Geschwindigkeit einer "New MFX" Lok wird nicht zur Z21 App gemeldert. Eine änderung in der App
@@ -580,15 +614,15 @@ void Send_Speed_to_LAN(uint8_t Index, uint16_t Speed1000, uint8_t Direction)    
                           //  0      1     2     3      4     5        6      7      8      9
   byte packetBuffer[10] = { 0x0A,  0x00, 0x40, 0x00,  0xE4, 0x13 };// 0x00,  0x2A,  0x96,  0x4B
 
-  uint16_t Adr = Read_Lok_Adr_from_EEPROM(Index);
-  packetBuffer[6] = (Adr >>8) & 0x3F;
-  packetBuffer[7] =  Adr      & 0xFF;
-  if (Adr >= 128) packetBuffer[6] |= 0xC0;
+  uint16_t Z21Adr = Read_Lok_Z21Adr_from_EEPROM(Index);
+  packetBuffer[6] = (Z21Adr >>8) & 0x3F;
+  packetBuffer[7] =  Z21Adr      & 0xFF;
+  if (Z21Adr >= 128) packetBuffer[6] |= 0xC0;
 
-  uint8_t OldDir = dcc.getLocoDir(Adr) ? 0x80 : 0;
+  uint8_t OldDir = dcc.getLocoDir(Z21Adr) ? 0x80 : 0;
   uint8_t Speed128;
   if (Speed1000 == 0xFFFF) // Don't change the speed
-       Speed128 = dcc.getLocoSpeed(Adr);
+       Speed128 = dcc.getLocoSpeed(Z21Adr);
   else {
        Speed128 = (((uint32_t)Speed1000*127)+500)/1000;  // +500 for rounding
        if (Speed128 > 127) Speed128 = 127;
@@ -600,9 +634,9 @@ void Send_Speed_to_LAN(uint8_t Index, uint16_t Speed1000, uint8_t Direction)    
        }
   else if (Direction == 1) Speed128 |= 0x80;
 
-  if ((dcc.getLocoSpeed(Adr) | OldDir) == Speed128) return ; // Nothing to do => return. That's important
-                                                             // because otherwise the Speed1000 steps get
-                                                             // overwritten by the feedback received over LAN
+  if ((dcc.getLocoSpeed(Z21Adr) | OldDir) == Speed128) return ; // Nothing to do => return. That's important
+                                                                // because otherwise the Speed1000 steps get
+                                                                // overwritten by the feedback received over LAN
   packetBuffer[8] = Speed128;
   Add_XOR_to_Buffer_and_Send_to_Clients(packetBuffer, sizeof(packetBuffer));
 }
@@ -614,11 +648,11 @@ void Send_FktKey_to_LAN(uint8_t Index, uint8_t FktNr, uint8_t OnOff)
                           //  0      1     2     3      4     5        6      7      8      9
   byte packetBuffer[10] = { 0x0A,  0x00, 0x40, 0x00,  0xE4, 0xF8 };// 0x00,  0x2A,  0x96,  0x4B
 
-  uint16_t Adr = Read_Lok_Adr_from_EEPROM(Index);
-  //Dprintf("Send_FktKey_to_LAN: Adr=%i\n", Adr);
-  packetBuffer[6] = (Adr >>8) & 0x3F;
-  packetBuffer[7] =  Adr      & 0xFF;
-  if (Adr >= 128) packetBuffer[6] |= 0xC0;
+  uint16_t Z21Adr = Read_Lok_Z21Adr_from_EEPROM(Index);
+  //Dprintf("Send_FktKey_to_LAN: Z21Adr=%i\n", Z21Adr);
+  packetBuffer[6] = (Z21Adr >>8) & 0x3F;
+  packetBuffer[7] =  Z21Adr      & 0xFF;
+  if (Z21Adr >= 128) packetBuffer[6] |= 0xC0;
 
   packetBuffer[8] = (OnOff<<6) | (FktNr & 0x3F);
   Add_XOR_to_Buffer_and_Send_to_Clients(packetBuffer, sizeof(packetBuffer));
@@ -636,23 +670,23 @@ void SetDCCSpeed(uint8_t Index, uint16_t Speed1000, uint8_t Direction, uint8_t S
 {
   if (!SendtoCAN) Send_Speed_to_LAN(Index, Speed1000, Direction); // Received from CAN?
 
-  uint16_t Adr = Read_Lok_Adr_from_EEPROM(Index);
+  uint16_t Z21Adr = Read_Lok_Z21Adr_from_EEPROM(Index);
   uint8_t Speed128 = (((uint32_t)Speed1000*127)+500)/1000;  // +500 for rounding
   if (Speed128 > 127) Speed128 = 127;
   if (Direction == 0)
        {
-       uint8_t OldDir = dcc.getLocoDir(Adr) ? 0x80 : 0;
+       uint8_t OldDir = dcc.getLocoDir(Z21Adr) ? 0x80 : 0;
        //Dprintf("OldDir %i ", OldDir); // Debug
        Speed128 |= OldDir;
        Direction = Var_Lok_Data[Index].Direction; // Don't change the direction                               // 20.02.22:
        }
   else if (Direction == 1) Speed128 |= 0x80;
 
-  dcc.setSpeed128(Adr, Speed128);
+  dcc.setSpeed128(Z21Adr, Speed128);
   Var_Lok_Data[Index].Speed = ((uint32_t)(0x7F & Speed128) * 1000) / 127;
   Var_Lok_Data[Index].Direction = Direction;
 
-  Dprintf("DCC_Speed %i Dir %i Adr %i\n", Speed128 & 0x7F, (Speed128 & 0x80)>0, Adr);  // Debug
+  Dprintf("DCC_Speed %i Dir %i Z21Adr %i\n", Speed128 & 0x7F, (Speed128 & 0x80)>0, Z21Adr);  // Debug
   Display_Ext_Loco_if_possible(Index, 0);
 }
 
@@ -664,7 +698,7 @@ void SetDCC_LokoFkt(uint8_t Index, uint8_t FktNr, uint8_t OnOff, uint8_t SendtoC
 {
   if (!SendtoCAN) Send_FktKey_to_LAN(Index, FktNr, OnOff);
 
-  dcc.setLocoFunc(Read_Lok_Adr_from_EEPROM(Index), OnOff, FktNr);
+  dcc.setLocoFunc(Read_Lok_Z21Adr_from_EEPROM(Index), OnOff, FktNr);
 
   uint32_t Mask = 1;
   Mask = Mask << FktNr;
@@ -693,6 +727,8 @@ uint32_t Get_UID(byte *Buf)
 #define GET_1_BYTE(BufP) BufP[4]
 #define GET_2_BYTE(BufP) ((BufP[4]<<8) + BufP[5])
 
+
+
 //-------------------------------------------------------------------
 void Store_CAN_Data(byte CAN_ID, byte *rxBuf, byte len, uint8_t Send)
 //-------------------------------------------------------------------
@@ -702,7 +738,7 @@ void Store_CAN_Data(byte CAN_ID, byte *rxBuf, byte len, uint8_t Send)
   if (len <= 4) return;
 
   // Store the actual states
-  uint8_t Index = Find_Index_from_ID(0, Get_UID(rxBuf));
+  uint8_t Index = Find_Index_from_ID(Get_UID(rxBuf));
   if (Index != 0xFFFF)
      {
      switch (CAN_ID)
@@ -1117,7 +1153,7 @@ void Send_Cmd_to_Lok(uint8_t Cmd, uint32_t uid, uint8_t len, uint16_t Par)
 void Send_Cmd_to_Lok_by_Ix(uint8_t Cmd, uint8_t Ix, uint8_t len, uint16_t Par)
 //----------------------------------------------------------------------------
 {
-  uint32_t uid = Read_Lok_uid_from_EEPROM(Ix);
+  uint32_t uid = Z21Adr_to_uid(Read_Lok_Z21Adr_from_EEPROM(Ix));
   Send_Cmd_to_Lok(Cmd, uid, len, Par);
 }
 

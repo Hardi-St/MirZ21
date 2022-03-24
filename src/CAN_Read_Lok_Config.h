@@ -238,8 +238,10 @@ uint8_t Get_Central(CAN_CLASS *can);
 
 typedef struct
   {
-  uint16_t uid;                // 2     // 0: Undefined, 1-0x03FF=MM, 0x0800-0x0BFF=?,  0x4000-0x7FFF: MFX, 0xC000-0xFFFF:DCC
-  uint16_t Adresse;            // 2
+  //uint16_t uid;                // 2     // 0: Undefined, 1-0x03FF=MM, 0x0800-0x0BFF=?,  0x4000-0x7FFF: MFX, 0xC000-0xFFFF:DCC
+  //uint16_t Adresse;            // 2
+  uint16_t Z21Adr;             // 2
+  uint16_t DCC;                // 2
   char     Name[LOK_NAME_LEN]; // 16
   uint8_t  FktTyp[32];         // 32
   } Const_Lok_Data_t;          // 52 (20) bytes
@@ -288,6 +290,70 @@ void Set_Status_LED(uint8_t On)
   #endif
 }
 
+//----------------------------------
+uint16_t uid_to_Z21Adr(uint16_t uid)
+//----------------------------------
+{
+  if (     uid <= 255)                                                    return uid          + Z21_ADR_MM_START;   // +8000
+  else if (uid >= 0x4000 && uid < 0x4000 + (10000 - Z21_ADR_MFX_START))   return uid - 0x4000 + Z21_ADR_MFX_START;  // +8256
+  else if (uid >= 0xC000 && uid < 0xC000 + Z21_ADR_MM_START)              return uid - 0xC000;
+
+  Dprintf("Error converting uid: %04X to Z21Adr\n", uid);
+  return 0;
+}
+
+//-------------------------------------
+uint16_t Z21Adr_to_uid(uint16_t Z21Adr)
+//-------------------------------------
+{
+  if (     Z21Adr < Z21_ADR_MM_START)  return Z21Adr                     + 0xC000; // DCC
+  else if (Z21Adr < Z21_ADR_MFX_START) return Z21Adr - Z21_ADR_MM_START;           // MM
+  else                                 return Z21Adr - Z21_ADR_MFX_START + 0x4000; // MFX
+}
+
+//------------------------------------
+uint16_t Z21Adr_to_DCC(uint16_t Z21Adr)
+//------------------------------------
+{
+  if (     Z21Adr < Z21_ADR_MM_START)  return Z21Adr;                    // DCC
+  else if (Z21Adr < Z21_ADR_MFX_START) return Z21Adr - Z21_ADR_MM_START; // MM
+  else                                 return 0;                         // MFX (Cant me calculated)
+}
+
+
+uint8_t Add_Detected_Loco_to_EEPROM(uint16_t Z21Adr); // Forward definitioen
+
+//---------------------------------------
+uint16_t Find_Index_from_ID(uint16_t uid)
+//---------------------------------------
+// Find the uid in the EEPROM array Const_Lok_Data[Nr].uid
+{
+  uint16_t i;
+  for (i = 0; i < Lok_Cnt; i++)
+      if (Z21Adr_to_uid(Read_Lok_Z21Adr_from_EEPROM(i)) == uid) return i;
+  #if CREATE_NOT_FOND_LOCOS
+     /*
+     if (Z21Adr == 0) // Function called from CAN
+        {
+        ToDo
+        #if EXT_ADR_RANGE_3_TYP != EA_TYP_SID
+            #error "ToDo: Not finished EXT_ADR_RANGE_3_TYP mut be equal EA_TYP_SID at the moment"
+        #endif
+        // 1-0x03FF=MM, 0x0800-0x0BFF=?,  0x4000-0x7FFF: MFX, 0xC000-0xFFFF:DCC
+        if (uid <= 0x3FF)                        Z21Adr = uid + 9000;                         // MM
+        else if (uid >= 0x4000 && uid <= 0x7FFF) Z21Adr = uid - 0x4000 + EXT_ADR_RANGE_END_2; // MFX
+        else if (uid >= 0xC000)                  Z21Adr = uid - 0xC000 + EXT_ADR_RANGE_END_1; // DCC
+        else return 0xFFFF;
+        }
+     */
+     Dprintf("Error: uid %04X not found in Find_Index_from_ID() => Adding the loco\n", uid);
+     if (!Add_Detected_Loco_to_EEPROM(uid_to_Z21Adr(uid))) return 0xFFFF;
+     return Lok_Cnt-1;
+  #endif
+  return 0xFFFF; // Not found
+}
+
+/*
 uint8_t Add_Detected_Loco_to_EEPROM(uint16_t Z21Adr); // Forward definition
 
 //--------------------------------------------------------
@@ -301,6 +367,7 @@ uint16_t Find_Index_from_ID(uint16_t Z21Adr, uint16_t uid)
   #if CREATE_NOT_FOND_LOCOS
      if (Z21Adr == 0) // Function called from CAN
         {
+        ToDo
         #if EXT_ADR_RANGE_3_TYP != EA_TYP_SID
             #error "ToDo: Not finished EXT_ADR_RANGE_3_TYP mut be equal EA_TYP_SID at the moment"
         #endif
@@ -316,11 +383,11 @@ uint16_t Find_Index_from_ID(uint16_t Z21Adr, uint16_t uid)
   #endif
   return 0xFFFF; // Not found
 }
-
+*/
 // ***************************************
 #if USE_EXT_ADR_TABLE
 // ***************************************
-
+/*
 #if EXT_ADR_RANGE_END_1 > EXT_ADR_RANGE_END_2 || EXT_ADR_RANGE_END_2 > EXT_ADR_RANGE_END_3 || EXT_ADR_RANGE_END_3 > 9999
   #error "Error: The EXT_ADR_RANGE_END_* must be in ascending order and < 10000"
 #endif
@@ -476,9 +543,9 @@ uint16_t Find_Index_from_Adr(uint16_t Adr)
   return Ix;
 }
 // ***************************************
-
+*/
 #else  // USE_EXT_ADR_TABLE
-
+/*
 //----------------------------------------
 uint16_t Find_Index_from_Adr(uint16_t Adr) // Old
 //----------------------------------------
@@ -492,8 +559,31 @@ uint16_t Find_Index_from_Adr(uint16_t Adr) // Old
   Dprintf("Error: Adr %i not found in Find_Index_from_Adr()\n", Adr);
   return 0xFFFF; // Not found
 }
+*/
 #endif // USE_EXT_ADR_TABLE
 
+//-------------------------------------------
+uint16_t Find_Index_from_Adr(uint16_t Z21Adr)
+//-------------------------------------------
+{
+  uint16_t i;
+  for (i = 0; i < Lok_Cnt; i++)
+      {
+      //char Name[LOK_NAME_LEN+1]; Dprintf("%2i %-16s %4i\n", i, Read_Lok_Name_from_EEPROM(i, Name), Read_Lok_Adr_from_EEPROM(i)); // Debug
+      if (Read_Lok_Z21Adr_from_EEPROM(i) == Z21Adr) return i;
+      }
+  #if CREATE_NOT_FOND_LOCOS
+    Dprintf("Find_Index_from_Adr(%i)\n", Z21Adr);
+    Dprintf("Error: Z21Adr not found in Find_Index_from_Adr_in_uid_Range(%i) => Adding the loco\n", Z21Adr);
+    if (!Add_Detected_Loco_to_EEPROM(Z21Adr)) return 0xFFFF;                                                    // 15.03.22:
+    return Lok_Cnt-1;
+  #else
+    Dprintf("Error: Z21Adr %i not found in Find_Index_from_Adr()\n", Z21Adr);
+    return 0xFFFF; // Not found
+  #endif
+}
+
+/*
 //---------------------------------
 char *Lok_Name_from_ID(uint16_t id)
 //---------------------------------
@@ -507,7 +597,7 @@ char *Lok_Name_from_ID(uint16_t id)
   sprintf(Name, "(%08X)", id);  // The '(' at the begin is used in Program_IR_Lok() to reread the lok names from the MS2
   return Name;
 }
-
+*/
 //----------------------------------------------------
 uint16_t Find_Lokname_in_Lok_Data(const char *Lokname)
 //----------------------------------------------------
@@ -758,12 +848,19 @@ void Add_Lokdetails_to_Array(char *Buffer, uint16_t LokNr, const char *Name)
 //--------------------------------------------------------------------------
 {
   uint16_t uid = (uint16_t)Read_Var_Hex(Buffer, ".uid=0x");
+  Write_Lok_Z21Adr_to_EEPROM(LokNr, uid_to_Z21Adr(uid));
+
+  uint16_t Adr = (uint16_t)Read_Var_Hex(Buffer, ".adresse=0x");
+  Write_Lok_DCC_to_EEPROM(LokNr, Adr);
+  /*                                                                                                          // 18.03.22:
+  uint16_t uid = (uint16_t)Read_Var_Hex(Buffer, ".uid=0x");
   Write_Lok_uid_to_EEPROM(LokNr, uid);
 
   uint16_t Adr = (uint16_t)Read_Var_Hex(Buffer, ".adresse=0x");
   Write_Lok_Adr_to_EEPROM(LokNr, Adr);
 
   //unsigned long mfxuid = Read_Var_Hex(p, ".mfxuid=0x"); Dprintf("Adr: %3i uid: %04X mfxuid: %08lX %10lu %s\n", Adr, uid, mfxuid, mfxuid, Name); // Debug
+  */
 
   uint8_t FktArr[32];
   Read_FuncTypes(Buffer, FktArr, Name);
@@ -906,11 +1003,11 @@ int16_t Read_Lok_Names_from_CAN(CAN_CLASS *can, uint16_t Start, uint8_t ReqCnt, 
    if (Res >= 0) free(Buffer); // 0 Is returned if the file is binary and could not be decoded
    return Ret;
 }
-
+/*
 typedef struct
   {
   uint16_t Ix;
-  uint8_t  Prio;
+  //uint8_t  Prio;
   uint16_t Adr;
   } Sort_Dat_t;
 
@@ -924,13 +1021,13 @@ int Comare_Sort_Dat(const void * a, const void * b)
 {
   if (((Sort_Dat_t*)a)->Adr - ((Sort_Dat_t*)b)->Adr != 0)
        return ((Sort_Dat_t*)a)->Adr - ((Sort_Dat_t*)b)->Adr;
-  else {
-       if (((Sort_Dat_t*)a)->Prio - ((Sort_Dat_t*)b)->Prio != 0)
-            return ((Sort_Dat_t*)a)->Prio - ((Sort_Dat_t*)b)->Prio;
-       else return ((Sort_Dat_t*)a)->Ix  -  ((Sort_Dat_t*)b)->Ix;
-       }
+//  else {
+//       if (((Sort_Dat_t*)a)->Prio - ((Sort_Dat_t*)b)->Prio != 0)
+//            return ((Sort_Dat_t*)a)->Prio - ((Sort_Dat_t*)b)->Prio;
+//       else return ((Sort_Dat_t*)a)->Ix  -  ((Sort_Dat_t*)b)->Ix;
+//       }
 }
-
+*/
 #if   EXT_ADR_RANGE_1_TYP == EA_TYP_MFX
                                                        #define PRIO_MFX  1
       #if EXT_ADR_RANGE_2_TYP == EA_TYP_DCC
@@ -996,30 +1093,35 @@ void Print_Lok_Data(uint8_t Mode = 1)
 //-----------------------------------
 // Mode 0: Unsorted list
 {
+  /*
   Sort_Dat_t *Sort_Dat = (Sort_Dat_t*)malloc(Lok_Cnt*sizeof(Sort_Dat_t));
   for (uint16_t i = 0; i < Lok_Cnt; i++)
     {
     Sort_Dat[i].Ix = i;
-    Sort_Dat[i].Adr = Read_Lok_Adr_from_EEPROM(i);
-    uint16_t uid = Read_Lok_uid_from_EEPROM(i);
+    //Sort_Dat[i].DCC = Read_Lok_DCC_from_EEPROM(i);
+    //uint16_t Z21Adr = Read_Lok_Z21Adr_from_EEPROM(i);
+
     if (uid <= 0x07FF)        Sort_Dat[i].Prio = PRIO_MM;  // MM
     else if (uid <= 0x7FFF)   Sort_Dat[i].Prio = PRIO_MFX; // MFX
     else if (uid >= 0xC000)   Sort_Dat[i].Prio = PRIO_DCC; // DCC
     else                      Sort_Dat[i].Prio = PRIO_MFX; // Should mot be possible, but in case...
     }
-  if (Mode >= 1) qsort(Sort_Dat, Lok_Cnt, sizeof(Sort_Dat_t), Comare_Sort_Dat);
+// ToDo: Sort by name?
+*/
+//  if (Mode >= 1) qsort(Sort_Dat, Lok_Cnt, sizeof(Sort_Dat_t), Comare_Sort_Dat);
 
-  uint16_t Prior_z21_adr = 0;
+  //uint16_t Prior_z21_adr = 0;
   uint8_t First = 1;
-  for (uint16_t j = 0; j < Lok_Cnt; j++)
+  for (uint16_t i = 0; i < Lok_Cnt; i++)
     {
-    uint16_t i = Sort_Dat[j].Ix;
     char Name[LOK_NAME_LEN+1];
     Read_Lok_Name_from_EEPROM(i, Name);
-    uint16_t uid = Read_Lok_uid_from_EEPROM(i);
-    uint16_t Adr = Read_Lok_Adr_from_EEPROM(i);
+    uint16_t Z21Adr = Read_Lok_Z21Adr_from_EEPROM(i);
+    uint16_t DCC    = Read_Lok_DCC_from_EEPROM(i);
+    uint16_t uid    = Z21Adr_to_uid(Z21Adr);
     if (Mode >= 1)
          { // Calculate the z21 adress
+         /*
          uint16_t z21_Adr = Sort_Dat[j].Adr;
          // Wenn die vorangegangene Lok die gleiche Adresse hat, dann muss ein Offset zur Z21 Adr addiert werden
          // Die Daten in Sort_Dat sind sortiert nach:
@@ -1039,18 +1141,18 @@ void Print_Lok_Data(uint8_t Mode = 1)
          Prior_z21_adr = z21_Adr;                            // if not both locos are located on the track at the same time.
                                                              // Attenton: The first name will be displayed
          char OptAdr[20];
+         */
          char s[20];
-         if (uid <= 0x03ff)      { sprintf(OptAdr, "%-4i", EXT_ADR_OFFS_MM  + Adr);             strcpy(s,  "MM");  }
-         else if (uid <= 0x7FFF) { sprintf(OptAdr, "%-4i", EXT_ADR_OFFS_SDI + (uid - 0x4000));  sprintf(s, "MFX"); }
-         else                    { sprintf(OptAdr, "%-4i", EXT_ADR_OFFS_DCC + Adr);             strcpy(s,  "DCC"); }
-
+         if (uid <= 0x03ff)      strcpy(s,  "MM");
+         else if (uid <= 0x7FFF) sprintf(s, "MFX");
+         else                    strcpy(s,  "DCC");
          if (First)
             {
-            Dprintf("z21Ad OptA Adr  uid  Typ Nr  Name               %s\n", Mode>=2?"Functions":"");
-            Dprintf("~~~~~ ~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~~~~~~~~~~~~~~~~ %s\n", Mode>=2?"~~~~~~~~~":"");
+            Dprintf("z21Ad Adr  uid  Typ Nr  Name               %s\n", Mode>=2?"Functions":"");
+            Dprintf("~~~~~ ~~~~ ~~~~ ~~~ ~~~ ~~~~~~~~~~~~~~~~~~ %s\n", Mode>=2?"~~~~~~~~~":"");
             First = 0;
             }
-         Dprintf("%-5s %-4s %4i %04X %-3s %3i \"%s\"", z21_str, OptAdr, Adr, uid, s, i+1, Name);
+         Dprintf("%-5i %4i %04X %-3s %3i \"%s\"", Z21Adr, DCC, uid, s, i+1, Name);
          if (Mode >= 2)
             {
             // Function keys
@@ -1061,6 +1163,7 @@ void Print_Lok_Data(uint8_t Mode = 1)
                 Dprintf("%4i", FktTyp[i]);
             }
          Dprintf("\n");
+
          }
     else { // Mode == 0
          if (First)
@@ -1069,11 +1172,11 @@ void Print_Lok_Data(uint8_t Mode = 1)
             Dprintf("~~~~ ~~~~ ~~~ ~~~~~~~~~~~~~~~~\n");
             First = 0;
             }
-         Dprintf("%4i %04X %3i %s\n", Adr, uid, i, Name);
+         Dprintf("%4i %04X %3i %s\n", DCC, uid, i, Name);
          }
     }
   Dprintf("Total: %i\n", Lok_Cnt);
-  free(Sort_Dat);
+  //free(Sort_Dat);
 }
 
 //----------------------------------------------------------------------------------
@@ -1237,6 +1340,8 @@ uint8_t Read_Lok_Config_from_CAN(CAN_CLASS *can)
 }
 
 #if CREATE_NOT_FOND_LOCOS
+
+
 //--------------------------------------------------
 uint8_t Add_Detected_Loco_to_EEPROM(uint16_t Z21Adr)
 //--------------------------------------------------
@@ -1256,14 +1361,20 @@ uint8_t Add_Detected_Loco_to_EEPROM(uint16_t Z21Adr)
 #if EXT_ADR_RANGE_1_TYP != EA_TYP_MFX || EXT_ADR_RANGE_2_TYP != EA_TYP_DCC || EXT_ADR_RANGE_3_TYP != EA_TYP_SID  || EXT_ADR_RANGE_4_TYP  != EA_TYP_MM
    #error "Currently not supported adress range combination!"
 #endif
-  uint16_t Adr, uid;
   const char *TypP;
+  if (     Z21Adr < Z21_ADR_MM_START)     TypP = "DCC";
+  else if (Z21Adr < Z21_ADR_MFX_START)    TypP = "MM";
+  else                                    TypP = "MFX";
+  Dprintf("Add_Detected_Loco_to_EEPROM(%i) uid %04X\n", Z21Adr, Z21Adr_to_uid(Z21Adr)); // Debug
+
+  /*
+  uint16_t Adr, uid;
   if (     Z21Adr <= EXT_ADR_RANGE_END_1)  { Adr = Z21Adr;                     uid = 0xC000 + Adr; TypP = "DCC"; } // <= 4000: Map as DCC
   else if (Z21Adr <= EXT_ADR_RANGE_END_2)  { Adr = Z21Adr-EXT_ADR_RANGE_END_1; uid = 0xC000 + Adr; TypP = "DCC"; } // <= 8000: Map as DCC
   else if (Z21Adr <= EXT_ADR_RANGE_END_3)  { Adr = Z21Adr-EXT_ADR_RANGE_END_2; uid = 0x4000 + Adr; TypP = "MFX"; } // <= 9000: Map as MFX
   else                                     { Adr = Z21Adr-EXT_ADR_RANGE_END_3; uid =          Adr; TypP = "MM";  } // <= 9255: Map as MM
-
   Dprintf("Add_Detected_Loco_to_EEPROM(%i) Adr %i uid %04X\n", Z21Adr, Adr, uid); // Debug
+  */
 
   char Name[20], Sufix = 'A';
   do // Check if the name already exists
@@ -1278,8 +1389,8 @@ uint8_t Add_Detected_Loco_to_EEPROM(uint16_t Z21Adr)
   Write_Lok_Name_to_EEPROM(Lok_Cnt, Name);
   uint16_t LokNr = Lok_Cnt++;
 
-  Write_Lok_Adr_to_EEPROM(LokNr, Adr);
-  Write_Lok_uid_to_EEPROM(LokNr, uid);
+  Write_Lok_DCC_to_EEPROM(LokNr, Z21Adr_to_DCC(Z21Adr));
+  Write_Lok_Z21Adr_to_EEPROM(LokNr, Z21Adr);
 
   uint8_t FktArr[32];
   for (uint8_t i = 0; i < 32; i++)

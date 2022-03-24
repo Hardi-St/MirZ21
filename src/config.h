@@ -123,8 +123,8 @@
 
 
 //------------------------------------------------
-#define USE_EXT_ADR_TABLE                         1    // Use the extended adress table. (Must be enabled to use different loco protocolls)
-
+#define USE_EXT_ADR_TABLE                         0    // Use the extended adress table. (Must be enabled to use different loco protocolls)
+/*
 #define EA_TYP_MFX   1
 #define EA_TYP_DCC   2
 #define EA_TYP_SID   3
@@ -138,8 +138,12 @@
 #define EXT_ADR_RANGE_END_1                    4000
 #define EXT_ADR_RANGE_END_2                    8000
 #define EXT_ADR_RANGE_END_3                    9000
+*/
 
-#define TEST_LOCO_SELECTION                       1
+#define Z21_ADR_MM_START                       8000    // Start adress for MM locos. The adresses before are used for DCC.
+#define Z21_ADR_MFX_START                      8256    // Start adress for MFX locos.
+
+#define TEST_LOCO_SELECTION                       0
 //------------------------------------------------
 
 
