@@ -5,6 +5,7 @@ Temp/
 Alt/
 Temp/
 zip/
+Create_Z21/Data/LocoData*.csv
 privat/
 src/Z21_to_Mae.ino.cpp
 src/*.xlsx
