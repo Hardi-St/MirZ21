@@ -160,6 +160,9 @@
 
  ToDo:
  ~~~~~
+ - Info wenn Fertig:
+   https://www.stummiforum.de/t165375f2-Roco-Z-mit-M-rklin.html
+
  - Open Directory Button:
    ---------------------------
    Finished successfully
@@ -172,6 +175,8 @@
    on the sd-card.
 
  - Bei "Send Functions to MirZ21" kommt kein OK Button am Ende
+
+
 
  - Testen
    - Keine Lok definiert in MS2
