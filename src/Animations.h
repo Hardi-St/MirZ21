@@ -19,6 +19,29 @@ void Stummilok_Ani()
   Display_setTextSize(1);
 }
 
+//-------------------
+void Stummilok_Ani2()
+//-------------------
+{
+  uint8_t y = 30;
+  uint8_t AnzZeichen = 20; // Wenn die Anzahl der Zeichen verändert wird, dann muss auch Make_Font_h_File.bat angepasst werden
+  uint8_t j = 0;
+  Display_setTextSize(14); // Stummilok2
+  for (int16_t i = 127; i > -100; i--, j+=5)
+    {
+    Display_clearDisplay();
+    if (j >= AnzZeichen) j = 0;
+    for (uint8_t k = 0; k < 5; k++)
+        {
+        display.drawGlyph(i+k*20, y-14, 73 + k + j);
+        }
+    display.drawHLine(0, y+7, 128);
+    display.drawHLine(0, y+8, 128);
+    Display_display();
+    delay(60);
+    }
+  Display_setTextSize(1);
+}
 
 //-------------
 void Haus_Ani()

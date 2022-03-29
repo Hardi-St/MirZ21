@@ -25,8 +25,8 @@ const char CmdHelp[] PROGMEM =
 #endif
     "ram         print the avilable memory\n"
     "restart     Restart the program\n"
-    "clear       clear the EEPROM\n"
-    "A oder A1   Animation anzeigen\n"
+    "clear       Clear the EEPROM\n"
+    "A, A1 or A2 Show animation\n"
   #if defined(ESP32)
     "nvr         Info about the nvr\n"
   #endif
@@ -270,6 +270,7 @@ void SerialCmd_loop()
         else If_Msg_Start("nvr")     Get_ESP32_NVR_Info();
      #endif
         else If_Msg_Start("A1")      Haus_Ani();
+        else If_Msg_Start("A2")      Stummilok_Ani2();
         else If_Msg_Start("A")       Stummilok_Ani();
         else Dprintf("Unknown serial command. Enter ? for help.\n");
         message_pos = 0; // Reset for the next message
