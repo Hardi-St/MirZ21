@@ -86,7 +86,7 @@
 #define USE_CAN      // CAN Bus
 
 #if defined (ESP8266)
-  #define ROTATE_DISPLAY_180_DEG                  1
+  #define ROTATE_DISPLAY_180_DEG                  0
   #define OLED_TYP                                13      // If the wrong type is selected the display is not shown correctly, (Artefacts on the left side)
 // Achtung: Loetjumper anpassen 2=VDD, 1=GND)  // 13:  1.3"  I2C 128X64  OLED  SH1106   (https://de.aliexpress.com/item/32683739839.html)
 //          Auch beim 0.96" Display gibt es    // 96:  0.96" I2C 128X64  OLED  SSD1306  (https://de.aliexpress.com/item/32643950109.html)
@@ -95,7 +95,7 @@
 //                                             //            GND, VCC, V0 = NC, RS = VCC, R/W = SPI_DISP_DAT, E = SPI_DISP_CLK, ... PSB = GND, BLA = VCC, BLK = GND
 #else // ESP32
   #define ROTATE_DISPLAY_180_DEG                  0
-  #define OLED_TYP                                7920
+  #define OLED_TYP                                13   // 7920
 #endif
 
 #define USE_SERIAL_COMMANDS                       1    // Enable serial commands for testing (See "Serial_Commands.h")

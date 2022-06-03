@@ -22,3 +22,13 @@ Create_Z21/Pic/CS3
 Create_Z21/Pic/Juergen/
 Create_Z21/Pic/Lok_Icons_Mae/
 Create_Z21/Pic/Lok_Icons_Z21/
+PCB/Old/
+PCB/*.lbr
+PCB/*.pro
+PCB/*.s#?
+PCB/*.b#?
+PCB/*.b#?
+PCB/*.scr
+PCB/PCB_Entwurf.txt
+PCB/Berechnung Spannungsteiler Taster.xlsx
+PCB/*.lck
