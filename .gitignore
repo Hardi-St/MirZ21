@@ -1,10 +1,11 @@
-*.zip
 .pio/
 Log/
 Temp/
 Alt/
 Temp/
 zip/
+Lokomotive_Rocksy.z21loco.zip
+MirZ21 - Kopie.zip
 Create_Z21/Data/LocoData*.csv
 privat/
 src/Z21_to_Mae.ino.cpp
@@ -28,6 +29,7 @@ PCB/*.pro
 PCB/*.s#?
 PCB/*.b#?
 PCB/*.b#?
+PCB/*.l#?
 PCB/*.scr
 PCB/PCB_Entwurf.txt
 PCB/Berechnung Spannungsteiler Taster.xlsx
