@@ -46,7 +46,7 @@
 //#define PROG_OUT_INVERT     //invert the Output Signal for Service-Mode (Prog-Relay)
 
 #if defined(ESP32)
-  #define POWER_LED_INVERT      0 // Beim ESP32 auf der MobaLedLib Hauptplatine
+  #define POWER_LED_INVERT      1 // Beim ESP32 auf der MobaLedLib Hauptplatine
 #else
   #define POWER_LED_INVERT      1 // invert the central Power Ouput Signal
 #endif

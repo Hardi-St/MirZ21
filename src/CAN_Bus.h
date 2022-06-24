@@ -162,6 +162,8 @@
 
  ToDo:
  ~~~~~
+ - Taktfrequenz ESP32 reduzieren damit Stromverbrauch reduziert wird
+
  - Info wenn Fertig:
    https://www.stummiforum.de/t165375f2-Roco-Z-mit-M-rklin.html
 
