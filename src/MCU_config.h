@@ -107,12 +107,10 @@
 
    CAN Kabel von MS2
    M‰rklin E146781
-    GND    Schwarz  Sub-D 3, 6
     CAN H  Orange   Sub-D 7
     CAN L  Braun    Sub-D 2
+    GND    Schwarz  Sub-D 3, 6
     +18V   Rot      Sub-D 9
- Attention: The pin sequence in HW V. 1.0 is wrong ;-(
-            Black and Orange have to be swapped
 
  Large ESP8266 Modul
  ~~~~~~~~~~~~~~~~~~~
@@ -139,12 +137,10 @@
             |RST              TX| GPIO1         |_|                    Attention:
             |GND             GND|               |  \                   Pin order doesn't  CAN Kabel von MS2
             |5V              3V3|              _|_                     match with the     M‰rklin E146781
-            |    # ,_____, #    |                                      CAN module          +18V   Rot      Sub-D 9
-            '------| USB |------'                                                          CAN H  Orange   Sub-D 7
-                   '-----'                                                                 CAN L  Braun    Sub-D 2
-                                                                                           GND    Schwarz  Sub-D 3, 6
-                                                                                          Attention: The pin sequence in HW V. 1.0 is wrong ;-(
-                                                                                                     Black and Orange have to be swapped
+            |    # ,_____, #    |                                      CAN module          CAN H  Orange   Sub-D 7
+            '------| USB |------'                                                          CAN L  Braun    Sub-D 2
+                   '-----'                                                                 GND    Schwarz  Sub-D 3, 6
+                                                                                           +18V   Rot      Sub-D 9
 */
 #if defined(DCC)
   #error "Error: DCC must be disabled in the main program"
@@ -171,17 +167,17 @@
 
  Tests with the MobaLedLib Mainboard and a ESP32        CAN is connected Maerklin device   CAN Kabel von MS2
  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~                  3 = CAN H                M‰rklin E146781
-  TSSP 4P38 .___.                                                 4 = CAN L                 +18V   Rot      Sub-D 9
-    oder    |( )|                                                                           CAN H  Orange   Sub-D 7
-  TSOP 4836 |___|      ,----------,===============,---------------------,                   CAN L  Braun    Sub-D 2
-             |||_5V__________,    |:             :'-----,          ___  |                   GND    Schwarz  Sub-D 3, 6
+  TSSP 4P38 .___.                                                 4 = CAN L                 CAN H  Orange   Sub-D 7
+    oder    |( )|                                                                           CAN L  Braun    Sub-D 2
+  TSOP 4836 |___|      ,----------,===============,---------------------,                   GND    Schwarz  Sub-D 3, 6
+             |||_5V__________,    |:             :'-----,          ___  |                   +18V   Rot      Sub-D 9
              ||        |  ___|_   |:             :      |         | C | |
           ,--+o-GND------|14 13|  |:             : ESP  '-------, | A | |   3" LCD Display 7920    SPI Display (12864B for 3D printers with ST7920 chip) (https://www.amazon.de/dp/B09SLXVH1P)
           |  |         | |11 12|  |:             : Adapter      | | N | |   ~~~~~~~~~~~~~~~~~~~
-          |  |         | |10 9 |  |:             :   ,----------, '---' |       4 = GND = NL K
-          |  '--7------|-|-- 7    |:             :   |2 4 6 8 10|============== 3 = VCC = SS = BL A
-    \._   |            | |6  5 |  |:             :   |1 3 5 7 9 |============== 9 = MOSI               ESP D23
-     | |--'GND         | |4  3 |  |: ,---------, :---'----  ----'       |       7 = SCK                ESP D18
+          |  |         | |10 9 |  |:             :   ,----------, '---' |       3 = VCC = SS = BL A
+          |  '--7------|-|-- 7    |:             :   |2 4 6 8 10|============== 4 = GND      = NL K
+    \._   |            | |6  5 |  |:             :   |1 3 5 7 9 |============== 7 = SCK
+     | |--'GND         | |4  3 |  |: ,---------, :---'----  ----'       |       9 = MOSI
      |_|----------1----|-|-- 1 |  |: |         | :,---------,           |
     /      +           | '-----'  |: | ESP 32  | :*    OLED |           |   Entweder OLED 0.96" / 1.3" oder 3" LCD Display
     Piezo              | KEY_80   |: |         | :*    0.96"|           |   Das wird in Config.h definiert
@@ -194,14 +190,6 @@
                        '------------------------------------------------'
                                               LED
                                              Button
-
-ESP32
-Current  67mA@18V    1.2W
-        170mA@5V     0.85W => Efficiency 70%
-
-ESP8266 46mA@18V     0.83W
-        96mA @5V     0.5W  => Efficiency 60%
-
 */
 //Power:
 #define Z21ResetPin      25       // RESET-Button-Pin bei Neustart bet√§tigen um Standard IP zu setzten!      // 02.02.22:  Old: 36

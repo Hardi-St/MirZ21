@@ -172,7 +172,6 @@ Aug.2016   add Railcom Support and update DCCInterfaceMaster and Booster Hardwar
 06.01.2022 slow down sense reading only for ESP8266 to let WLAN work
            add invert option for DCC/Power LED and Service Mode (Prog Relay) output
 08.10.2022 fix Short Detection and ACK for WeMos with voltage devider
-04.07.2022 don't show the WLAN password
 ------------------------------------
 */
 //**************************************************************
@@ -363,7 +362,7 @@ void AllLocoData(uint16_t adr, uint8_t data[]); //so function can be found!
 //--> EEPROM Konfiguration ESP:
 #define DCC_EESize      767        // Größe des EEPROM
 #if defined(ESP8266_MCU)
-  #define EESize        4096       // Größe des EEPROM           // Achtung: Die Zahl wird nur beim ESP8266 verwendet beim ESP32 steht die Gr��e in "z21nvs.h" !!!
+  #define EESize        4096       // Größe des EEPROM           // Achtung: Die Zahl wird nur beim ESP8266 verwendet beim ESP32 steht die Gr��e in "z21nvs.h" !!!
 #endif
 
 #define EEStringMaxSize 40         // Länge String im EEPROM
@@ -1269,9 +1268,8 @@ void Webconfig() {
                         else client.print("none");
                         client.print("</dd><dd>SSID: <input type=text id=\"ssid\" value=\"");
                         client.print(ssid);
-                        client.print("\"></dd><dd>Secret Key: <input type=password id=\"pass\" value=\"");    // 04.07.22:
-                      //client.print("\"></dd><dd>code: <input type=text id=\"pass\" value=\"");              //   "       Old
-                      //client.print(pass);                                                                   //   "       Disabled
+                        client.print("\"></dd><dd>Secret Key: <input type=password id=\"pass\" value=\"");
+                        client.print(pass);
                         client.println("\"></dd></dl>");
 
                         client.println("<h2>S88 Module</h2>");
