@@ -23111,6 +23111,109 @@ part number 2062-2P from STA</description>
 </deviceset>
 </devicesets>
 </library>
+<library name="diode" urn="urn:adsk.eagle:library:210">
+<description>&lt;b&gt;Diodes&lt;/b&gt;&lt;p&gt;
+Based on the following sources:
+&lt;ul&gt;
+&lt;li&gt;Motorola : www.onsemi.com
+&lt;li&gt;Fairchild : www.fairchildsemi.com
+&lt;li&gt;Philips : www.semiconductors.com
+&lt;li&gt;Vishay : www.vishay.de
+&lt;/ul&gt;
+&lt;author&gt;Created by librarian@cadsoft.de&lt;/author&gt;</description>
+<packages>
+<package name="SOT23" urn="urn:adsk.eagle:footprint:43155/1" library_version="8">
+<description>&lt;B&gt;DIODE&lt;/B&gt;</description>
+<wire x1="1.4224" y1="0.6604" x2="1.4224" y2="-0.6604" width="0.1524" layer="51"/>
+<wire x1="1.4224" y1="-0.6604" x2="-1.4224" y2="-0.6604" width="0.1524" layer="51"/>
+<wire x1="-1.4224" y1="-0.6604" x2="-1.4224" y2="0.6604" width="0.1524" layer="51"/>
+<wire x1="-1.4224" y1="0.6604" x2="1.4224" y2="0.6604" width="0.1524" layer="51"/>
+<wire x1="-1.4224" y1="-0.1524" x2="-1.4224" y2="0.6604" width="0.1524" layer="21"/>
+<wire x1="-1.4224" y1="0.6604" x2="-0.8636" y2="0.6604" width="0.1524" layer="21"/>
+<wire x1="1.4224" y1="0.6604" x2="1.4224" y2="-0.1524" width="0.1524" layer="21"/>
+<wire x1="0.8636" y1="0.6604" x2="1.4224" y2="0.6604" width="0.1524" layer="21"/>
+<smd name="3" x="0" y="1.1" dx="1" dy="1.4" layer="1"/>
+<smd name="2" x="0.95" y="-1.1" dx="1" dy="1.4" layer="1"/>
+<smd name="1" x="-0.95" y="-1.1" dx="1" dy="1.4" layer="1"/>
+<text x="-1.905" y="1.905" size="1.27" layer="25">&gt;NAME</text>
+<text x="-1.905" y="-3.175" size="1.27" layer="27">&gt;VALUE</text>
+<rectangle x1="-0.2286" y1="0.7112" x2="0.2286" y2="1.2954" layer="51"/>
+<rectangle x1="0.7112" y1="-1.2954" x2="1.1684" y2="-0.7112" layer="51"/>
+<rectangle x1="-1.1684" y1="-1.2954" x2="-0.7112" y2="-0.7112" layer="51"/>
+</package>
+</packages>
+<packages3d>
+<package3d name="SOT23" urn="urn:adsk.eagle:package:43389/2" type="model" library_version="8">
+<description>DIODE</description>
+<packageinstances>
+<packageinstance name="SOT23"/>
+</packageinstances>
+</package3d>
+</packages3d>
+<symbols>
+<symbol name="PESD1CAN" urn="urn:adsk.eagle:symbol:43247/2" library_version="8">
+<wire x1="-0.762" y1="1.27" x2="1.016" y2="2.54" width="0.254" layer="94"/>
+<wire x1="1.016" y1="2.54" x2="-0.762" y2="3.81" width="0.254" layer="94"/>
+<wire x1="-0.762" y1="3.81" x2="-0.762" y2="1.27" width="0.254" layer="94"/>
+<wire x1="1.143" y1="3.81" x2="1.143" y2="1.27" width="0.254" layer="94"/>
+<wire x1="1.143" y1="3.81" x2="0.254" y2="3.81" width="0.254" layer="94"/>
+<wire x1="-0.762" y1="-3.81" x2="1.016" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="1.016" y1="-2.54" x2="-0.762" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="-0.762" y1="-1.27" x2="-0.762" y2="-3.81" width="0.254" layer="94"/>
+<wire x1="1.143" y1="-1.27" x2="1.143" y2="-3.81" width="0.254" layer="94"/>
+<wire x1="1.143" y1="-1.27" x2="0.254" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="-2.286" y1="-1.27" x2="-4.064" y2="-2.54" width="0.254" layer="94"/>
+<wire x1="-4.064" y1="-2.54" x2="-2.286" y2="-3.81" width="0.254" layer="94"/>
+<wire x1="-2.286" y1="-3.81" x2="-2.286" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="-4.191" y1="-3.81" x2="-4.191" y2="-1.27" width="0.254" layer="94"/>
+<wire x1="-4.191" y1="-3.81" x2="-3.302" y2="-3.81" width="0.254" layer="94"/>
+<wire x1="-2.286" y1="3.81" x2="-4.064" y2="2.54" width="0.254" layer="94"/>
+<wire x1="-4.064" y1="2.54" x2="-2.286" y2="1.27" width="0.254" layer="94"/>
+<wire x1="-2.286" y1="1.27" x2="-2.286" y2="3.81" width="0.254" layer="94"/>
+<wire x1="-4.191" y1="1.27" x2="-4.191" y2="3.81" width="0.254" layer="94"/>
+<wire x1="-4.191" y1="1.27" x2="-3.302" y2="1.27" width="0.254" layer="94"/>
+<wire x1="2.54" y1="2.54" x2="2.54" y2="-2.54" width="0.1524" layer="94"/>
+<wire x1="2.54" y1="2.54" x2="1.27" y2="2.54" width="0.1524" layer="94"/>
+<wire x1="2.54" y1="-2.54" x2="1.27" y2="-2.54" width="0.1524" layer="94"/>
+<wire x1="-4.1275" y1="2.54" x2="-5.08" y2="2.54" width="0.1524" layer="94"/>
+<wire x1="-4.1275" y1="-2.54" x2="-5.08" y2="-2.54" width="0.1524" layer="94"/>
+<wire x1="-2.2225" y1="-2.54" x2="-0.79375" y2="-2.54" width="0.1524" layer="94"/>
+<wire x1="-2.2225" y1="2.54" x2="-0.79375" y2="2.54" width="0.1524" layer="94"/>
+<text x="-5.08" y="5.08" size="1.778" layer="95">&gt;NAME</text>
+<text x="-5.08" y="-7.62" size="1.778" layer="96">&gt;VALUE</text>
+<pin name="1" x="-7.62" y="2.54" visible="off" length="short" direction="pas"/>
+<pin name="3" x="5.08" y="0" visible="off" length="short" direction="pas" rot="R180"/>
+<pin name="2" x="-7.62" y="-2.54" visible="off" length="short" direction="pas"/>
+<circle x="2.54" y="0" radius="0.359209375" width="0" layer="94"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="PESD1CAN" urn="urn:adsk.eagle:component:43611/4" prefix="D" library_version="8">
+<description>&lt;b&gt;CAN bus ESD protection diode&lt;/b&gt;&lt;p&gt;
+Source: http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf</description>
+<gates>
+<gate name="G$1" symbol="PESD1CAN" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="SOT23">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+<connect gate="G$1" pin="3" pad="3"/>
+</connects>
+<package3dinstances>
+<package3dinstance package3d_urn="urn:adsk.eagle:package:43389/2"/>
+</package3dinstances>
+<technologies>
+<technology name="">
+<attribute name="POPULARITY" value="0" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
 </libraries>
 <attributes>
 </attributes>
@@ -23198,6 +23301,8 @@ part number 2062-2P from STA</description>
 <part name="GND20" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="J1" library="SparkFun-Retired" deviceset="SOLDERJUMPER" device="TRACE" value="SOLDERJUMPERTRACE"/>
 <part name="JP1" library="SparkFun-Connectors" deviceset="M02" device="PTH" value="Test"/>
+<part name="D2" library="diode" library_urn="urn:adsk.eagle:library:210" deviceset="PESD1CAN" device="" package3d_urn="urn:adsk.eagle:package:43389/2"/>
+<part name="GND21" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -23255,6 +23360,12 @@ bridged.</text>
 - Changed drill hole D1 to 0.85mm 
   (Old 0.7mm)
 </text>
+<text x="40.64" y="15.24" size="1.778" layer="94">ToDo:
+- Pinbelegung Märklin Kabel korrigieren
+- ESP32 ein bisschen nach rechts verschieben 
+  weil es Versionen gibt welche nicht in das 
+  Gehäuse passen
+- PESD2CAN platzieren</text>
 </plain>
 <instances>
 <instance part="MOD2" gate="G$1" x="238.76" y="73.66" smashed="yes" rot="R180">
@@ -23493,6 +23604,13 @@ bridged.</text>
 <attribute name="VALUE" x="114.3" y="167.64" size="1.778" layer="96" rot="MR90"/>
 <attribute name="NAME" x="125.222" y="170.18" size="1.778" layer="95" rot="MR90"/>
 </instance>
+<instance part="D2" gate="G$1" x="58.42" y="172.72" smashed="yes" rot="R270">
+<attribute name="NAME" x="63.5" y="177.8" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="50.8" y="177.8" size="1.778" layer="96" rot="R270"/>
+</instance>
+<instance part="GND21" gate="1" x="58.42" y="165.1" smashed="yes">
+<attribute name="VALUE" x="54.61" y="162.56" size="1.778" layer="96"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -23605,6 +23723,10 @@ bridged.</text>
 <segment>
 <pinref part="T1" gate="1" pin="1"/>
 <pinref part="GND20" gate="1" pin="GND"/>
+</segment>
+<segment>
+<pinref part="D2" gate="G$1" pin="3"/>
+<pinref part="GND21" gate="1" pin="GND"/>
 </segment>
 </net>
 <net name="+5V" class="0">
@@ -23860,7 +23982,8 @@ bridged.</text>
 <wire x1="78.74" y1="193.04" x2="73.66" y2="193.04" width="0.1524" layer="91"/>
 <label x="30.48" y="193.04" size="1.778" layer="95"/>
 <pinref part="CON3" gate="G$1" pin="1"/>
-<wire x1="73.66" y1="193.04" x2="25.4" y2="193.04" width="0.1524" layer="91"/>
+<wire x1="73.66" y1="193.04" x2="60.96" y2="193.04" width="0.1524" layer="91"/>
+<wire x1="60.96" y1="193.04" x2="25.4" y2="193.04" width="0.1524" layer="91"/>
 <wire x1="25.4" y1="187.96" x2="25.4" y2="193.04" width="0.1524" layer="91"/>
 <pinref part="CON1" gate="G$1" pin="1"/>
 <wire x1="15.24" y1="187.96" x2="25.4" y2="187.96" width="0.1524" layer="91"/>
@@ -23875,6 +23998,9 @@ bridged.</text>
 <label x="114.3" y="243.84" size="1.778" layer="95"/>
 <label x="73.66" y="205.74" size="1.778" layer="95" rot="R90"/>
 <label x="30.48" y="218.44" size="1.778" layer="95"/>
+<pinref part="D2" gate="G$1" pin="1"/>
+<wire x1="60.96" y1="180.34" x2="60.96" y2="193.04" width="0.1524" layer="91"/>
+<junction x="60.96" y="193.04"/>
 </segment>
 </net>
 <net name="CAN_L" class="0">
@@ -23885,10 +24011,11 @@ bridged.</text>
 <wire x1="76.2" y1="218.44" x2="76.2" y2="241.3" width="0.1524" layer="91"/>
 <wire x1="76.2" y1="241.3" x2="127" y2="241.3" width="0.1524" layer="91"/>
 <junction x="76.2" y="185.42"/>
-<wire x1="76.2" y1="185.42" x2="25.4" y2="185.42" width="0.1524" layer="91"/>
+<wire x1="76.2" y1="185.42" x2="55.88" y2="185.42" width="0.1524" layer="91"/>
 <label x="30.48" y="185.42" size="1.778" layer="95"/>
 <pinref part="CON3" gate="G$1" pin="2"/>
 <pinref part="CON1" gate="G$1" pin="2"/>
+<wire x1="55.88" y1="185.42" x2="25.4" y2="185.42" width="0.1524" layer="91"/>
 <wire x1="15.24" y1="185.42" x2="25.4" y2="185.42" width="0.1524" layer="91"/>
 <junction x="25.4" y="185.42"/>
 <pinref part="CAN1" gate="1" pin="CAN_L"/>
@@ -23898,6 +24025,9 @@ bridged.</text>
 <label x="114.3" y="241.3" size="1.778" layer="95"/>
 <label x="76.2" y="205.74" size="1.778" layer="95" rot="R90"/>
 <label x="63.5" y="218.44" size="1.778" layer="95"/>
+<pinref part="D2" gate="G$1" pin="2"/>
+<wire x1="55.88" y1="180.34" x2="55.88" y2="185.42" width="0.1524" layer="91"/>
+<junction x="55.88" y="185.42"/>
 </segment>
 </net>
 <net name="SPK+" class="0">
