@@ -23,10 +23,12 @@
 
  CAN Kabel von MS2                       Attention: The Pins GPIO0, GPIO2 and GPIO15
  Märklin E146781                                    select the boot selection.
-  CAN H  Orange   Sub-D 7                           - GPIO0 and GPIO2 need to be pulled up to Vcc
-  CAN L  Braun    Sub-D 2                           - GPIO15 needs to be pulled to GND
-  GND    Schwarz  Sub-D 3, 6                        See: https://www.instructables.com/ESP8266-Using-GPIO0-GPIO2-as-inputs/
-  +18V   Rot      Sub-D 9
+  +18V   Rot      Sub-D 9                           - GPIO0 and GPIO2 need to be pulled up to Vcc
+  CAN H  Orange   Sub-D 7                           - GPIO15 needs to be pulled to GND
+  CAN L  Braun    Sub-D 2                           See: https://www.instructables.com/ESP8266-Using-GPIO0-GPIO2-as-inputs/
+  GND    Schwarz  Sub-D 3, 6
+ Attention: The pin sequence in HW V. 1.0 is wrong ;-(
+            Black and Orange have to be swapped
 
  Interrupts:
  - GPIO16 Kann keine Interrupts (https://microcontrollerslab.com/esp8266-interrupts-timers-arduino-ide-nodemcu/)
@@ -138,7 +140,7 @@
               client changes the speed.
  14.07.22:  - Supporting accessory commands (switches, ...) from Z21 App, WLANmouse and Märklin CAN components.
               The changes swizches are shown on the OLED
-            - Read the lokos from the MS2/CSx if the button is pressed longer thän 5 seconds.
+            - Read the lokoc from the MS2/CSx if the button is pressed longer thän 5 seconds.
               The existing configuration is deleted. If no märklin device is connected the configuration
               is loaded the next time when powered up.
 
@@ -187,6 +189,8 @@
 
  ToDo:
  ~~~~~
+ - Taktfrequenz ESP32 reduzieren damit Stromverbrauch reduziert wird
+
  - Info wenn Fertig:
    https://www.stummiforum.de/t165375f2-Roco-Z-mit-M-rklin.html
 
@@ -380,8 +384,18 @@
  - Weichen
 
  - Status abfragen (Strom/Temp/..)
+
  - Menu
+   - Start/Stop
    - Lok Liste auslesen
+   - Anzeige IP
+   - Steuerung
+     - Lang = Menü
+       - Kurz Nächster Eintrag
+       - Lang = Auswählen
+       - Ende mit Timeout oder Menüpunkt "Ende"
+
+
 
  - Einer unbekannte DCC oder MM Lok soll auch so zu fahren sein (Adresse +4000 oder +9000)
  - Behandlung von unbekannten Lokomotiven welche von der Z21 App empfangen wurden

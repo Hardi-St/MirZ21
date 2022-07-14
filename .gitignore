@@ -35,6 +35,3 @@ PCB/*.scr
 PCB/PCB_Entwurf.txt
 PCB/Berechnung Spannungsteiler Taster.xlsx
 PCB/*.lck
-.vscode/c_cpp_properties.json
-.vscode/extensions.json
-.vscode/launch.json
