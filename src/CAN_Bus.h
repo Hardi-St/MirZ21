@@ -30,7 +30,7 @@
  Attention: The pin sequence in HW V. 1.0 is wrong ;-(
             Black and Orange have to be swapped
 
-   Interrupts:
+ Interrupts:
  - GPIO16 Kann keine Interrupts (https://microcontrollerslab.com/esp8266-interrupts-timers-arduino-ide-nodemcu/)
  - GPIO15 Bootet nicht wenn PullUp verwendet wird, Geht, mit Signal nach +, hat eingbauten PullDown
  => Der IR-Receiver muss an Pin D3 angeschlossen werden
@@ -117,6 +117,33 @@
               - DCC: 1    - 8000 (No offset)
               - MM:  8001 - 8255 (Offset 8000)
               - MFX: 8256 - 9999 (Offset 8256)
+ 10.07.22:  - Fixed the CAN bus library to support the ESP32 chip revision >= 2
+ 11.07.22:  - Corrected the german umlauts in the loco name display in the Maerkin IR select menu Select_Ma_Loko_Display()
+            - Checked animations and adapted the screen positions
+ 12.07.22:  - Updated Add_XOR_to_Buffer_and_Send_to_Clients() to send CAN status changes to all active WLAN clients.
+              Prior only the first two clients have been updated immediately. The others have been updated delayed
+              with the periodic message.
+            - Changed the method of sending WLAN messages in SetDCC_LokoFkt() and SetDCCSpeed() to update
+              the WLAN clients imidiately.
+            - Added toggle funktion for the WLANmouse to notifyz21_Lan_LocoFkt().
+            => WLANmouse support for speed and function is finished.
+               The WLANmouse could also be connected to the internal MirZ21 Wlan while other clients are connected
+               to the "Home" WLAN.
+               Not checked if the switches are handeled different than the Z21 App.
+ 13.07.22:  - Improved the speed message generation. Prior the speed 0 has been send together with the
+              direction information followed by the correct speed. This was caused by the fact that the
+              CAN bus has two separat commandas for direction and speed. Unfortunately this behavior generates
+              a flickering screen on the Z21 App.
+              Now the direction message contains the (last) speed => No flicker.
+              Minor problem: The direction display on the WLANmouse is not always updated. Thats not critical
+              because the speed is not displayed at all and the speed knob is not turned by a motor is an other
+              client changes the speed.
+ 14.07.22:  - Supporting accessory commands (switches, ...) from Z21 App, WLANmouse and Märklin CAN components.
+              The changes swizches are shown on the OLED
+            - Read the lokos from the MS2/CSx if the button is pressed longer thän 5 seconds.
+              The existing configuration is deleted. If no märklin device is connected the configuration
+              is loaded the next time when powered up.
+
 
  Adressbereiche
  ~~~~~~~~~~~~~~
@@ -613,13 +640,27 @@ void Beep(uint16_t ms);
 //-------------------------------------------------------------------------------
 void Add_XOR_to_Buffer_and_Send_to_Clients(byte *packetBuffer, uint8_t BufferLen)
 //-------------------------------------------------------------------------------
+// Is called if changes from CAN are detected
 {
   byte Xor = 0;
   for (uint8_t i = 4; i < BufferLen-1; i++) Xor = Xor ^ packetBuffer[i];
   packetBuffer[BufferLen-1] = Xor;
 
+  // Send the function keys and speed to all active LAN/WLAN clients                                          // 12.07.22:
+  //Dprintf("Check Active Clients: storedIP=%i\n", storedIP);
+  for (uint16_t i = 0; i < storedIP; i++)
+    {
+    if (mem[i].time > 0)
+       {
+       //Dprintf("Send to client %i\n", i+1);
+       z21.receive(i+1, packetBuffer);
+       }
+    }
+  /* 12.07.22:  Old
   z21.receive(1, packetBuffer); // Send to all clients except 1
   z21.receive(2, packetBuffer); // Send to all clients except 2 Unfortunately the clients 3, 4, ... get the message twice
+  // 12.07.22: Es sieht eher so aus als würden die messages nur an die zwei clients geschickt und nicht an alle.
+  */
 }
 
 //--------------------------------------------------------------------------
@@ -653,12 +694,13 @@ void Send_Speed_to_LAN(uint8_t Index, uint16_t Speed1000, uint8_t Direction)    
        }
   else if (Direction == 1) Speed128 |= 0x80;
 
-  if ((dcc.getLocoSpeed(Z21Adr) | OldDir) == Speed128) return ; // Nothing to do => return. That's important
-                                                                // because otherwise the Speed1000 steps get
+//if ((dcc.getLocoSpeed(Z21Adr) | OldDir) == Speed128) return ; // Nothing to do => return. That's important  // 13.07.22:  Disabled to send the data to all client
+                                                                // because otherwise the Speed1000 steps get                Otherwise only some Z21 App Display are updated
                                                                 // overwritten by the feedback received over LAN
   packetBuffer[8] = Speed128;
   Add_XOR_to_Buffer_and_Send_to_Clients(packetBuffer, sizeof(packetBuffer));
 }
+
 //------------------------------------------------------------------
 void Send_FktKey_to_LAN(uint8_t Index, uint8_t FktNr, uint8_t OnOff)
 //------------------------------------------------------------------
@@ -677,17 +719,101 @@ void Send_FktKey_to_LAN(uint8_t Index, uint8_t FktNr, uint8_t OnOff)
   Add_XOR_to_Buffer_and_Send_to_Clients(packetBuffer, sizeof(packetBuffer));
 }
 
-//---------------------------------------------------------------------------------------
+//------------------------------------------------------------------
+void Send_Accessory_to_LAN(uint16_t Adr, uint8_t Pos, uint8_t Power)                                          // 14.07.22:
+//------------------------------------------------------------------
+// Anforderung an Z21:
+// DataLen      Header     X-Header  DB0       DB1       DB2       XOR-Byte
+// 0x09  0x00   0x40 0x00  0x53      FAdr_MSB  FAdr_LSB  10Q0A00P  XOR-Byte
+//
+// Es gilt: Funktions-Adresse = (FAdr_MSB << 8) + FAdr_LSB
+//
+// 1000A00P  A=0 ... Weichenausgang deaktivieren
+//     A=1 ... Weichenausgang aktivieren
+//     P=0 ... Ausgang 1 der Weiche wählen
+//     P=1 ... Ausgang 2 der Weiche wählen
+//     Q=0 ... Kommando sofort ausführen
+//     Q=1 ... ab Z21 FW V1.24: Weichenbefehl in der Z21 in die Queue einfügen und zum
+//             nächstmöglichen Zeitpunkt am Gleis ausgeben.
+
+{
+  //Dprintf("Send_Accessory_to_LAN %i, %i, %i\n", Adr, Pos, Power);
+                         //  0      1     2     3      4      5     6      7      8
+  byte packetBuffer[9] = { 0x09,  0x00, 0x40, 0x00,  0x53 };//AdrHi AdrLo  Bits   XOR
+
+  packetBuffer[5] = Adr >>8;
+  packetBuffer[6] = Adr & 0xFF;
+
+  packetBuffer[7] = 0xA0 | ((Power > 0) ? 0x08:0) | ((Pos > 0) ? 1:0);
+  Add_XOR_to_Buffer_and_Send_to_Clients(packetBuffer, sizeof(packetBuffer));
+}
+
+#define ALLWAYS_SEND2WLAN 1+2  // Bitmask which defines where allways send is used. 1:SetDCCSpeed, 2: SetDCC_LokoFkt // 12.07.22:
+
+// Bei der Geschwindigkeit wird abwechselnd 0 und der richtige Wert gesendet
+// Das führt dazu, dass das Display der Z21 App und der MS2 flackert wenn man an der Maus dreht ;-(
+// Ein Mal habe ich beobachtet, das die MS2 auf 0 stand obwohl sie einen Wert hättte zeigen sollen.
+// Das tritt aber nur dann auf wenn ALLWAYS_SEND2WLAN die 1 enthält. Aber ohne die 1 werden nicht alle
+// Z21 Aps Displays sofort aktualisiert. Es Dauert bis zu 4 Sekunden bis zur richtigen Anzeige.
+//
+// ALLWAYS_SEND2WLAN = 2 => Nur SetDCC_LokoFkt
+//   2 Z21 RX: A 0 40 0 E4 13 E0 47 B6 E6
+//   SetDCCSpeed(0, 0, 1, 1)
+//   SetDCCSpeed(0, 425, 0, 1)
+//   2 Z21 TX: 0E 00 40 00 EF 20 47 04 B6 00 00 00 00 3A
+
+// ALLWAYS_SEND2WLAN = 1+2 => SetDCC_LokoFkt & SetDCC_LokoFkt
+//   3 Z21 RX: A 0 40 0 E4 13 E0 47 B8 E8
+//   1 Z21 TX: 0E 00 40 00 EF 20 47 04 80 00 00 00 00 0C
+//   3 Z21 TX: 0E 00 40 00 EF 20 47 0C 80 00 00 00 00 04
+//   2 Z21 TX: 0E 00 40 00 EF 20 47 04 80 00 00 00 00 0C
+//   3 Z21 TX: 0E 00 40 00 EF 20 47 0C 80 00 00 00 00 04
+//   3 Z21 TX: 0E 00 40 00 EF 20 47 04 80 00 00 00 00 0C
+//   SetDCCSpeed(0, 0, 1, 1)
+//   1 Z21 TX: 0E 00 40 00 EF 20 47 04 B8 00 00 00 00 34
+//   3 Z21 TX: 0E 00 40 00 EF 20 47 0C B8 00 00 00 00 3C
+//   2 Z21 TX: 0E 00 40 00 EF 20 47 04 B8 00 00 00 00 34
+//   3 Z21 TX: 0E 00 40 00 EF 20 47 0C B8 00 00 00 00 3C
+//   3 Z21 TX: 0E 00 40 00 EF 20 47 04 B8 00 00 00 00 34
+//   SetDCCSpeed(0, 440, 0, 1)
+//   3 Z21 TX: 0E 00 40 00 EF 20 47 04 B8 00 00 00 00 34
+
+
+//--------------------------------------------------------------------------------------
 void SetDCCSpeed(uint8_t Index, uint16_t Speed1000, uint8_t Direction, uint8_t SendtoCAN)
-//---------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------
 // Set the Speed for the DCC world
-// Speed1000 0..1000 (1024)
+// Speed1000 0..1000 (1024),  0xFFFF Don't change
 // Direction 0 Don't change, 1 Forward, 2 Backward
 //
 // This function is called if a speed or direction
-// message is received from the CAN bus.
+// message is received from the CAN bus or from WLAN..
 {
-  if (!SendtoCAN) Send_Speed_to_LAN(Index, Speed1000, Direction); // Received from CAN?
+  // Bei der Geschwindigkeit wurde abwechselnd 0 und der richtige Wert gesendet. Das lag daran,               // 13.07.22:
+  // dass in Store_CAN_Data() zuerst die Richtung und dann die Geschwindigkeit auf den CAN Bus gesendet
+  // wurde. Bim WLAN sind beide informationen in einem Paket enthalten.
+  // Das hat dazu geführt, dass das Display der Z21 App und der MS2 flackert wenn man an der WLANMaus dreht ;-(
+  // Darum wird jetzt wurde in Store_CAN_Data() der Wert 0xFFFF gesendet wenn die Richtung gesetzt wird.
+  // Eigentlich ist die überprüfung auf Speed 0xFFFF auch in Send_Speed_to_LAN() implementiert,
+  // Man braucht die folgenden Zeilen nur für die Richtungsänderung per Maerklin IF Fernbediehnung.
+  if (Speed1000 == 0xFFFF)  // Don't change the speed
+     {                                                              // Prevent sending the speed 0
+     uint16_t Z21Adr = Read_Lok_Z21Adr_from_EEPROM(Index);          // If the direction is send
+     uint8_t Speed128 = dcc.getLocoSpeed(Z21Adr);
+     Speed1000 = ((uint32_t)(0x7F & Speed128) * 1000) / 127;
+     //Dprintf("Speed128:%i Speed1000:%i\n", Speed128, Speed1000); // Debug
+     }
+
+  #if ALLWAYS_SEND2WLAN & 1         // For some reasons the speed is not send to all clients imidiately      // 12.07.22:
+      static bool RecCalled = 0;    // if a Z21 App changes a function. It worked fine fron CAN changes.
+      if (RecCalled) return ;       // If this block is enabled the speed is always sent to WLAN
+      RecCalled = 1;                // To prevent recursive calls the variable RecCalled ist used.
+      Send_Speed_to_LAN(Index, Speed1000, Direction);
+  #else
+      if (!SendtoCAN) Send_Speed_to_LAN(Index, Speed1000, Direction); // Only send to LAN if received from CAN
+  #endif
+
+  //Dprintf("SetDCCSpeed(%i, %i, %i, %i)\n", Index, Speed1000, Direction, SendtoCAN);
 
   uint16_t Z21Adr = Read_Lok_Z21Adr_from_EEPROM(Index);
   uint8_t Speed128 = (((uint32_t)Speed1000*127)+500)/1000;  // +500 for rounding
@@ -705,17 +831,28 @@ void SetDCCSpeed(uint8_t Index, uint16_t Speed1000, uint8_t Direction, uint8_t S
   Var_Lok_Data[Index].Speed = ((uint32_t)(0x7F & Speed128) * 1000) / 127;
   Var_Lok_Data[Index].Direction = Direction;
 
-  Dprintf("DCC_Speed %i Dir %i Z21Adr %i\n", Speed128 & 0x7F, (Speed128 & 0x80)>0, Z21Adr);  // Debug
+  //Dprintf("DCC_Speed %i Dir %i Z21Adr %i\n", Speed128 & 0x7F, (Speed128 & 0x80)>0, Z21Adr);  // Debug
   Display_Ext_Loco_if_possible(Index, 0);
+  #if ALLWAYS_SEND2WLAN & 1
+      RecCalled = 0;
+  #endif
 }
 
 //---------------------------------------------------------------------------------
 void SetDCC_LokoFkt(uint8_t Index, uint8_t FktNr, uint8_t OnOff, uint8_t SendtoCAN)
 //---------------------------------------------------------------------------------
 // This function is called if a a function key
-// message is received from the CAN bus.
+// message is received from the CAN bus or from WLAN.
 {
-  if (!SendtoCAN) Send_FktKey_to_LAN(Index, FktNr, OnOff);
+// Irgend wie wird die Funktion von verschiedenen Stellen mehrfach aufgerufen ?!?
+  #if ALLWAYS_SEND2WLAN & 2          // For some reasons the function keys have not been send to the WLANmaus // 12.07.22:
+      static bool RecCalled = 0;     // if a Z21 App changes a function. It worked fine fron CAN changes.
+      if (RecCalled) return ;        // If this block is enabled the function keys are always sent to WLAN
+      RecCalled = 1;                 // To prevent recursive calls the variable RecCalled ist used.
+      Send_FktKey_to_LAN(Index, FktNr, OnOff);
+  #else
+      if (!SendtoCAN) Send_FktKey_to_LAN(Index, FktNr, OnOff); // Only send to LAN if received from CAN
+  #endif
 
   dcc.setLocoFunc(Read_Lok_Z21Adr_from_EEPROM(Index), OnOff, FktNr);
 
@@ -726,8 +863,11 @@ void SetDCC_LokoFkt(uint8_t Index, uint8_t FktNr, uint8_t OnOff, uint8_t SendtoC
        { FuncKeys |=  Mask; }
   else { FuncKeys &= ~Mask; }
   Var_Lok_Data[Index].FuncKeys = FuncKeys;
-  Dprintf("SetDCC_LokoFkt(%i, %i, %i)\n", Index, FktNr, OnOff);  // Debug
+  //Dprintf("SetDCC_LokoFkt(%i, %i, %i)\n", Index, FktNr, OnOff);  // Debug
   Display_Ext_Loco_if_possible(Index, 0);
+  #if ALLWAYS_SEND2WLAN  & 2
+      RecCalled = 0;
+  #endif
 }
 
 //-------------------------
@@ -753,7 +893,7 @@ void Store_CAN_Data(byte CAN_ID, byte *rxBuf, byte len, uint8_t Send)
 //-------------------------------------------------------------------
 // Store Lok speed, direction and functions from CAN
 {
-  //Dprintf("Store_CAN_Data %02X len:%i, uid:%04lX  ix:%i\n", CAN_ID, len, Get_UID(rxBuf), Find_Index_from_ID(Get_UID(rxBuf)));  // Debug
+  //Dprintf("Store_CAN_Data %02X len:%i, uid:%04lX  ix:%i Send=%i\n", CAN_ID, len, Get_UID(rxBuf), Find_Index_from_ID(Get_UID(rxBuf)), Send);  // Debug
   if (len <= 4) return;
 
   // Store the actual states
@@ -763,19 +903,53 @@ void Store_CAN_Data(byte CAN_ID, byte *rxBuf, byte len, uint8_t Send)
      switch (CAN_ID)
         {
         case 0x08: // Speed
-                   //Dprintf("Store_CAN_Data Speed %i\n", GET_2_BYTE(rxBuf)); // Debug
+                   // Dprintf("Store_CAN_Data Speed %i\n", GET_2_BYTE(rxBuf)); // Debug
                    SetDCCSpeed(Index, GET_2_BYTE(rxBuf), 0, Send);
                    break;
         case 0x0A: // Direction
-                   //Dprintf("Store_CAN_Data Dir %i\n", GET_1_BYTE(rxBuf));  // Debug
-                   SetDCCSpeed(Index, 0, GET_1_BYTE(rxBuf), Send); // Speed = 0
+                   // Dprintf("Store_CAN_Data Dir %i\n", GET_1_BYTE(rxBuf));  // Debug
+                   SetDCCSpeed(Index, 0xFFFF, GET_1_BYTE(rxBuf), Send); // Speed = 0xFFFF                     // 13.07.22:  Old: Speed = 0
                    break;
         case 0x0C: // Lok functions
+                   //Dprintf("Store_CAN_Data Func %04X\n", GET_2_BYTE(rxBuf));  // Debug
                    if (rxBuf[4] < 32 && len == 6) // len == 6" to skip the request data message
                       SetDCC_LokoFkt(Index, rxBuf[4], rxBuf[5], Send);
                    break;
         }
      }
+}
+
+//-------------------------------------------------------------------------------
+void Receive_Accessory_from_CAN(byte CAN_ID, byte *rxBuf, byte len, uint8_t Send)                             // 14.07.22:
+//-------------------------------------------------------------------------------
+// Store Lok speed, direction and functions from CAN
+{
+  if (len <= 4) return;
+
+  uint32_t Adr = Get_UID(rxBuf) - 0x3000;
+  //Dprintf("Accessory %i Pos:%i Current:%i\n", Adr, rxBuf[4], rxBuf[5]);
+  Send_Accessory_to_LAN(Adr, rxBuf[4], rxBuf[5]);
+}
+
+//--------------------------------------------------------------
+void Send_Acc_to_CAN(uint16_t Adr, uint8_t Pos, uint8_t Current)                                              // 14.07.22:
+//--------------------------------------------------------------
+// Send one accessory command to the CAN
+{
+  if (!CAN_is_ok) return ;
+
+  byte Data[8];
+  Adr += 0x3000;
+  Data[0] = 0;
+  Data[1] = 0;
+  Data[2] = (Adr >> 8)  & 0xFF;
+  Data[3] =  Adr        & 0xFF;
+  Data[4] = Pos;
+  Data[5] = Current;
+  uint8_t Cmd = 0x16;
+  uint8_t len = 6;
+  uint32_t MsgID = Hash + ((uint32_t)Cmd << 16);
+  can.sendMsgBuf(MsgID, 1, len, Data);
 }
 
 //--------------------------------------------
@@ -1034,8 +1208,10 @@ void CAN_Server(void)
            case 0x08: // Speed
            case 0x0A: // Direction
            case 0x0C: // Lok functions
-           case 0x16: // Accessory command
                       Store_CAN_Data(CAN_ID, rxBuf, len, 0);
+                      break;
+           case 0x16: // Accessory command
+                      Receive_Accessory_from_CAN(CAN_ID, rxBuf, len, 0);
                       break;
            case 0x31: if (len == 8) ProcPing(rxId, rxBuf);
                       break;
@@ -1184,15 +1360,15 @@ void Send_Cmd_From_IR_to_Lok_by_Ix(uint8_t Cmd, uint8_t Ix, uint8_t len, uint16_
   switch (Cmd)
     {
     case 0x08: // Speed
-               Dprintf("Send_Cmd_From_IR_to_Lok_by_Ix Speed:%i\n", Par);
+               //Dprintf("Send_Cmd_From_IR_to_Lok_by_Ix Speed:%i\n", Par);
                Send_Speed_to_LAN(Ix, Par, 0);
                break;
     case 0x0A: // Direction
-               Dprintf("Send_Cmd_From_IR_to_Lok_by_Ix Dir:%i\n", Par);
+               //Dprintf("Send_Cmd_From_IR_to_Lok_by_Ix Dir:%i\n", Par);
                Send_Speed_to_LAN(Ix, 0xFFFF, Par);
                break;
     case 0x0C: // Function keys
-               Dprintf("Send_Cmd_From_IR_to_Lok_by_Ix FucKey:%i\n", Par);
+               //Dprintf("Send_Cmd_From_IR_to_Lok_by_Ix FucKey:%i\n", Par);
                Send_FktKey_to_LAN(Ix, Par>>8, Par & 0xFF);
                break;
     }
@@ -1287,9 +1463,23 @@ void notifyz21_Lan_LocoFkt(uint16_t Adr, uint8_t state, uint8_t fkt)
   uint32_t Mask = 1;
   Mask = Mask << fkt;
   uint16_t Par = fkt*256;
+
+  // Bei der WLANmaus kommt der state 2 !
+  // Die Z21 App schickt state 0 oder 1
+  switch (state)                                                                                              // 12.07.22:
+    {
+    case 2:  if (FuncKeys & Mask)   // Toggle function for the WLANmaus
+                  { FuncKeys |=  Mask; Par++;}
+             else { FuncKeys &= ~Mask;       }
+             break;
+    case 1:  FuncKeys |=  Mask; Par++; break;
+    default: FuncKeys &= ~Mask;
+    }
+  /*                                                                                                          // 12.07.22:  Old
   if (state)
        { FuncKeys |=  Mask; Par++; }
   else { FuncKeys &= ~Mask; }
+  */
   Var_Lok_Data[Lok_Nr].FuncKeys = FuncKeys;
   Send_Cmd_to_Lok_by_Ix(0x0C, Lok_Nr, 6, Par);
   Display_Ext_Loco_if_possible(Lok_Nr, 1);
@@ -1302,7 +1492,7 @@ void notifyz21_Lan_LocoSpeed(uint16_t Adr, uint8_t speed)
 //       Bits 0x7F = Speed (0-127)
 // Is called if the Z21 app sends new speed and direction data
 {
-  Dprintf("LocoSpeed(Adr:%i, Speed:%3i, Dir:%i)\n", Adr, speed&0x7F, (speed&0x80)>0); // Debug
+  //Dprintf("LocoSpeed(Adr:%i, Speed:%3i, Dir:%i)\n", Adr, speed&0x7F, (speed&0x80)>0); // Debug
 
   if (Railpower == csEmergencyStop) globalPower(csNormal); // Disable the emergency stop is the speed is changed
 
@@ -1357,6 +1547,18 @@ void Print_RAM()
   #endif
 }
 
+//-----------------------
+void Print_ChipRevision()                                                                                     // 10.07.22:
+//-----------------------
+{
+  #if defined(ESP32)
+    esp_chip_info_t chip;  // See: esp32\esp_system.h
+    esp_chip_info(&chip);
+    Serial.print("Chip Revision:"); Serial.println(chip.revision);
+  #endif
+}
+
+
 #include "Animations.h"
 
 //--------------
@@ -1377,7 +1579,9 @@ void CAN_setup()
                   "CAN init failed\n");
        }
 
-  Ma_Lok_Nr[1] = 150;
+  //Ma_Lok_Nr[1] = 150;                                                                                       // 10.07.22:  Disabled. Wozu war das drinnen?
+
+  Print_ChipRevision();                                                                                       // 10.07.22:
 
   Lok_Cnt = Read_Lok_Cnt_from_EEPROM();
   Dprintf("Lok_Cnt:%i\n", Lok_Cnt);   // Debug
@@ -1394,6 +1598,7 @@ void CAN_setup()
 //  Stummilok_Ani();
 
   Beep(100);
+
 }
 
 //-------------

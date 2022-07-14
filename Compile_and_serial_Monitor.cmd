@@ -35,5 +35,4 @@ cd Log
 REM Start the serial monitor (The ESP32 seames to have problems with 1000000 baud)
 REM Old 500000 (The Excel serial Monitor seames to have problems with 500000)
 pio device monitor -b 115200  --echo --filter log2file
-
 cd ..

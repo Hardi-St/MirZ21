@@ -77,7 +77,10 @@ uint8_t Write_OLED_LineHeight = DISPLAYLINEHIGHT_SMALL_FONT;
 #include "font_Fkt_Icons.bdf.h"
 #include "font_Stummilok.bdf.h"
 #include "font_Stummilok2.bdf.h"
+#include "font_Stummilok3.bdf.h"
 #include "font_Haus.bdf.h"
+#include "font_Haus1.bdf.h"
+#include "font_Haus2.bdf.h"
 #include "font_Weichen.bdf.h"
 
 //------------------------------------
@@ -99,8 +102,11 @@ void Display_setTextSize(uint8_t Size)
 //   case 4:  display.setFont(u8g2_font_crox5t_tf);                 break;  //             w:23 h:27  5.57  x  2.37
 //   case 5:  display.setFont(u8g2_font_4x6_tf);                    break;  //             w:4  h:6   32.00 x 10.67
 
+     case 15: display.setFont(font_Stummilok3);                     break;
      case 14: display.setFont(font_Stummilok2);                     break;
      case 13: display.setFont(font_Weichen);                        break;
+     case 16: display.setFont(font_Haus1);                          break;
+     case 17: display.setFont(font_Haus2);                          break;     
      case 12: display.setFont(font_Haus);                           break;
      case 11: display.setFont(font_Stummilok);                      break;
      case 10: display.setFont(font_Fkt_Icons);                      break;  // Font for the Icons

@@ -16,6 +16,8 @@
 //----------------------------------------------
 #if defined(LAN) || defined(WIFI) || defined(ESP_WIFI)
 
+#include "Dprintf.h"
+
 extern void Z21LANreceive();
 
 // buffers for receiving and sending data
@@ -26,6 +28,9 @@ extern void Z21LANreceive();
 #if defined(Z21DISPLAY) && defined(BOOSTER_INT_MAINCURRENT)
 extern void DisplayUpdateRailData(uint16_t inAm, float volt, float temp);
 #endif
+
+void Send_Acc_to_CAN(uint16_t Adr, uint8_t Pos, uint8_t Current);   // Forward definition  (CAN_Bus.h)        // 14.07.22:
+void Display_Accessory(uint16_t Adr, uint8_t Pos, uint8_t Current); //   "       "         (IR_Functions.h)
 
 //----------------------------------------------
 //Wenn zwei Kommunikationsschnittstellen aktiv sind wird LAN hinten angestellt:
@@ -122,7 +127,7 @@ void WLANSetup() {
     byte timeout = 200;  //try to init at least                                                               // 13.01.22:  Old: 20
     do {
        #if defined(DEBUG)
-       Debug.print(".");
+           Debug.print(".");
        #endif
        WLAN.println(); //let device Flush old Data!
        delay(50);   //wait for ESP8266 to receive!
@@ -133,7 +138,7 @@ void WLANSetup() {
           b0 = b1;
           b1 = WLAN.read();
           #if defined(DEBUG)
-          Debug.write(b1);
+              Debug.write(b1);
           #endif
           }
        timeout--;
@@ -197,18 +202,18 @@ void WLANSetup() {
     while (WLAN.available() == 0 && timeout > 0) {timeout--; delay(5);}  //wait
     byte HashData = 0x00;
     byte ClientCount = 0;
-    #if defined(Z21DEBUG)
-    Debug.println(F("Report WiFi Clients:"));
+    #if defined(Z21DEBUG) || REPORT_WIFI_CLIENTS                                                              // 12.07.22:  Added: REPORT_WIFI_CLIENTS
+        Debug.println(F("Report WiFi Clients:"));
     #endif
     while (WLAN.available() > 0) {
       HashData = WLAN.read();
       if (HashData != 0x00) {
         listofWLANHash[ClientCount] = HashData;
         ClientCount++;
-        #if defined(Z21DEBUG)
-        Debug.print(ClientCount);
-        Debug.print(F(" IPHash: "));
-        Debug.println(HashData, HEX);
+        #if defined(Z21DEBUG) || REPORT_WIFI_CLIENTS                                                          // 12.07.22:  Added: REPORT_WIFI_CLIENTS
+            Debug.print(ClientCount);
+            Debug.print(F(" IPHash: "));
+            Debug.println(HashData, HEX);
         #endif
       }
     }
@@ -262,10 +267,8 @@ boolean tryWifiClient() {
 
      #if defined(DEBUG)
         Serial.println();
-        Serial.print("Client: ");
-        Serial.println(ssid.c_str());
-        Serial.print("PW: ");
-        Serial.println(pass.c_str());
+        Serial.print("Client: "); Serial.println(ssid.c_str());
+      //Serial.print("PW: ");     Serial.println(pass.c_str());                                               // 11.07.22:  Disabled (Enable to debug connection errors)
      #endif
 
      WiFi.begin(ssid.c_str(), pass.c_str());
@@ -435,14 +438,17 @@ void Z21LANreceive() {
     byte packetBuffer[packetSize];
     Udp.read(packetBuffer,packetSize);  // read the packet into packetBufffer
     if (packetSize == packetBuffer[0]) { //normal:
-      #if defined(Z21DATADEBUG)
-      Debug.print(Z21addIP(remote[0], remote[1], remote[2], remote[3], Udp.remotePort()) + Z21_Eth_offset);
-      Debug.print(" Z21 RX: ");
-      for (byte i = 0; i < packetBuffer[0]; i++) {
-        Debug.print(packetBuffer[i], HEX);
-        Debug.print(" ");
-      }
-      Debug.println();
+      #if defined(Z21DATADEBUG) || Z21DATADEBUG_LONG
+          if (Z21DATADEBUG_LONG == 0 || packetBuffer[0] > 9)                                                                 //   "
+             {
+             Debug.print(Z21addIP(remote[0], remote[1], remote[2], remote[3], Udp.remotePort()) + Z21_Eth_offset);
+             Debug.print(" Z21 RX: ");
+             for (byte i = 0; i < packetBuffer[0]; i++) {
+               Debug.print(packetBuffer[i], HEX);
+               Debug.print(" ");
+               }
+             Debug.println();
+             }
       #endif
       z21.receive(Z21addIP(remote[0], remote[1], remote[2], remote[3], Udp.remotePort()) + Z21_Eth_offset, packetBuffer);
     }
@@ -775,10 +781,31 @@ void notifyz21LocoSpeed(uint16_t Adr, uint8_t speed, uint8_t steps)
   #endif
 }
 
-//--------------------------------------------------------------------------------------------
+//------------------------------------------------------------
 void notifyz21Accessory(uint16_t Adr, bool state, bool active)
+//------------------------------------------------------------
+// Is called when an accessory command is received from WLAN and (inderect) from CAN
 {
   dcc.setBasicAccessoryPos(Adr, state, active);
+
+  Display_Accessory(Adr, state, active); // Print on OLED Display
+  Dprintf("Accessory Adr:%i State:%i Power:%i\n", Adr+1, state, active);                                      // 14.07.22:
+  Send_Acc_to_CAN(Adr, state, active);
+  /*
+   WLANmouse W0013 Taster Gerade:
+   accessory 12 1 1
+   accessory 12 1 0    Kommt beim loslassen der Taste
+
+   Taste Abzweig
+   accessory 12 0 1
+   accessory 12 0 0
+
+   Die Z21 App liefert genau die gleichen Werte. Auch hier liefert die Weichen Adresse 13 die 12 in der Debugaugabe.
+   Hier kann man eine Weiche nur umschalten.
+   Beide Zeilen kommen sofort hintereinander den die Maustaste losgelassen wird.
+   Mit "Halten" kommt man im Editor zu den Einstellungen.
+   Die Anzeige auf in der App und auf der WLANMaus sind synchron. Getestet mit 3 gleichzeig laufenden Z21 Apps und einer Maus.
+  */
 }
 
 //--------------------------------------------------------------------------------------------
@@ -1063,7 +1090,7 @@ uint8_t notifyz21ClientHash(uint8_t client) {
   }
   #endif
 
-  #if defined(Z21DEBUG)
+  #if defined(Z21DEBUG) || REPORT_WIFI_CLIENTS                                                                // 12.07.22:  Added: REPORT_WIFI_CLIENTS
   Debug.print(client);
   Debug.print(F(" IPHash: "));
   Debug.print(HashIP, HEX);
@@ -1091,14 +1118,18 @@ void restartENC28() {
 //--------------------------------------------------------------------------------------------
 void notifyz21EthSend(uint8_t client, uint8_t *data)
 {
-  #if defined(Z21DATADEBUG)
-  Debug.print(client);
-  Debug.print(F(" Z21 TX: "));
-  for (byte i = 0; i < data[0]; i++) {
-    Debug.print(data[i], HEX);
-    Debug.print(" ");
-  }
-  Debug.println();
+  #if defined(Z21DATADEBUG) || Z21DATADEBUG_LONG                                                              // 12.07.22:  Added Z21DATADEBUG_LONG
+  if (Z21DATADEBUG_LONG == 0 || data[0] > 8)                                                                 //   "
+     {
+     Debug.print(client);
+     Debug.print(F(" Z21 TX: "));
+     for (byte i = 0; i < data[0]; i++) {
+       if (data[i]<0x0F) Debug.print('0');                                                                    // 12.07.22:  Leading 0
+       Debug.print(data[i], HEX);
+       Debug.print(" ");
+       }
+     Debug.println();
+     }
   #endif
   if (client == 0) { //all stored
     #if defined(LAN) || defined(ESP_WIFI)

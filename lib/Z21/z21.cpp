@@ -675,14 +675,14 @@ void z21Class::receive(uint8_t client, uint8_t *packet)
 		z21IPpreviousMillis = currentMillis;
 		for (byte i = 0; i < z21clientMAX; i++) {
 			if (ActIP[i].time > 0) {
-				ActIP[i].time--;    //Zeit herrunterrechnen
-			}
+                 ActIP[i].time--;    //Zeit herrunterrechnen
+                 }
 			else {
-				clearIP(i); 	//clear IP DATA
-				//send MESSAGE clear Client
-			}
-		}
-	}
+                 clearIP(i);     //clear IP DATA
+                 //send MESSAGE clear Client
+                 }
+            }
+        }
 }
 
 //--------------------------------------------------------------------------------------------

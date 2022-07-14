@@ -634,8 +634,7 @@ void Select_Ma_Loko_Display()
            {
            char Name[LOK_NAME_LEN+1];
            uint8_t y = y0 + i*dy;
-           display.setCursor(2, y);
-           Write_OLED("%s\37", Read_Lok_Name_from_EEPROM(Read_Ma_Lok_Nr_from_EEPROM(i), Name));
+           display.drawUTF8(2, y, Read_Lok_Name_from_EEPROM(Read_Ma_Lok_Nr_from_EEPROM(i), Name));  // *** Loco name ***   11.07.22:  Old: Write_OLED(...)
            }
        display.drawRFrame(0, y0 - 12 + Act_Ma_Lok_Ix*dy, 128, 15,2);  // Rahmen um aktuelle Lok
        Write_OLED("");
@@ -884,6 +883,57 @@ void Set_IR_Power(int8_t Mode)
   NextScrUpd_Time = millis() + 3000; // Switch back to normal display in xx ms
   Show_Temp_Display = 1;
 }
+
+typedef struct
+    {
+    uint16_t Adr;
+    uint8_t  Pos:1;
+    } AccessoryList_T;
+
+#define ACCESSORYLIST_CNT  5
+AccessoryList_T AccessoryList[ACCESSORYLIST_CNT];
+uint8_t used_AccListPos = 0;
+
+#define CLEARACCLIST_PERIOD  10000   // Disable the line if the lis should not be cleared after a while
+#ifdef CLEARACCLIST_PERIOD
+  uint32_t ClearAccList = 0;
+#endif
+
+//----------------------------------------------------------------
+void Display_Accessory(uint16_t Adr, uint8_t Pos, uint8_t Current)                                            // 14.07.22:
+//----------------------------------------------------------------
+{
+  if (Current)
+     {
+     #ifdef CLEARACCLIST_PERIOD
+       if (millis() > ClearAccList)
+          used_AccListPos = 0;
+       ClearAccList = millis() + CLEARACCLIST_PERIOD;
+     #endif
+
+     if (used_AccListPos >= ACCESSORYLIST_CNT)
+        {
+        memmove(AccessoryList, AccessoryList+1, sizeof(AccessoryList_T)*(ACCESSORYLIST_CNT-1));
+        used_AccListPos--;
+        }
+     AccessoryList_T *p = &AccessoryList[used_AccListPos];
+     p->Adr = Adr;
+     p->Pos = Pos;
+     used_AccListPos++;
+     Write_OLED("\22\14Accessory\n\21\37");
+     p = &AccessoryList[0];
+     if (used_AccListPos == 1)
+          Write_OLED("\n\n\22Adr:%i %i", p->Adr+1, p->Pos);
+     else {
+          for (uint8_t i = 0; i < used_AccListPos; i++, p++)
+             Write_OLED(" Adr:%5i   %i%s", p->Adr+1, p->Pos, i+1 < used_AccListPos?"\n\37":"");
+          }
+     NextScrUpd_Time = millis() + 5000; // Switch back to normal display in xx ms
+     Show_Temp_Display = 1;
+     }
+}
+
+
 
 //------------------------------------
 void Set_TV_Lok_Direction(int8_t Mode)

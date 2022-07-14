@@ -363,7 +363,7 @@ void AllLocoData(uint16_t adr, uint8_t data[]); //so function can be found!
 //--> EEPROM Konfiguration ESP:
 #define DCC_EESize      767        // Größe des EEPROM
 #if defined(ESP8266_MCU)
-  #define EESize        4096       // Größe des EEPROM           // Achtung: Die Zahl wird nur beim ESP8266 verwendet beim ESP32 steht die Gr��e in "z21nvs.h" !!!
+  #define EESize        4096       // Größe des EEPROM           // Achtung: Die Zahl wird nur beim ESP8266 verwendet beim ESP32 steht die Gr��e in "z21nvs.h" !!!
 #endif
 
 #define EEStringMaxSize 40         // Länge String im EEPROM
@@ -687,8 +687,8 @@ static void globalPower (byte state) {
 
     Railpower = state;
     #if defined(DEBUG)
-    Debug.print(F("Power: "));
-    Debug.println(state);
+        Debug.print(F("Power: "));
+        Debug.println(state);
     #endif
     switch (state) {
       case csNormal:
@@ -944,25 +944,26 @@ uint8_t Read_Z21Button()
 
 //--------------------------------------------------------------------------------------------
 void updateLedButton() {
+  static uint32_t ButtonPressTime = 0;
   //Button to control Railpower state
   if ((Read_Z21Button() == LOW) && (Z21ButtonLastState == 0)) {  //Button DOWN
        Z21ButtonLastState = 1;
-       LEDcount = millis();
+       LEDcount = ButtonPressTime = millis();
        }
   else {
        // Improved long press detection. Now the long press action is directly performed                      // 06.02.22:
        // when the button is hold for longer than 750 ms.
        // Prior the action was performed when the button was released.
        uint8_t ActButton = Read_Z21Button();
-       if (((ActButton == HIGH) ||(millis() - LEDcount > 750))  // Button UP or long pressed
+       if (((ActButton == HIGH) || (millis() - ButtonPressTime > 750))  // Button UP or long pressed
           && (Z21ButtonLastState == 1))
           {
           Z21ButtonLastState = 2; // New state: Button processed => The following part is only processed once until the button is released
           #if defined(DEBUG)
-             Debug.print(F("Button "));
+              Debug.print(F("Button "));
           #endif
           if (Railpower == csNormal) {
-               if(millis() - LEDcount > 750) { //push long?
+               if(millis() - ButtonPressTime > 750) { //push long?
                     if (FIXSTORAGE.read(52) == 0x00)   //Power-Button (short): 0=Gleisspannung aus, 1=Nothalt
                          globalPower(csEmergencyStop);
                     else globalPower(csTrackVoltageOff);
@@ -975,6 +976,19 @@ void updateLedButton() {
                }
           else globalPower(csNormal);
           LEDcount = millis();
+          }
+
+       if (Z21ButtonLastState == 2)                                                                           // 14.07.22:
+          {
+          uint32_t t  = millis() - ButtonPressTime;
+          if (t > 5000)
+             {
+             Z21ButtonLastState = 3;
+             globalPower(csTrackVoltageOff);
+             //Dprintf("Button pressed verry long %lu\n", t);
+             Beep(300);
+             Read_Lok_Config_from_CAN(&can);
+             }
           }
        if (ActButton == HIGH) Z21ButtonLastState = 0; // Button released
        }

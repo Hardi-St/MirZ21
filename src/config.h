@@ -80,8 +80,9 @@
 //#define Z21SYSTEMDATADEBUG  //to see the system data mainpower and temp
 //#define notifyz21Lo
 
-
 // Additional config lines by Hardi
+#define Z21DATADEBUG_LONG      0 // to see only the long (>8/>9) messages in notifyz21EthSend (The short messages seame to be something like a heartbeat)                      // 12.07.22:
+#define REPORT_WIFI_CLIENTS    0 // to report the registered clients
 
 #define USE_CAN      // CAN Bus
 
@@ -92,7 +93,7 @@
 //          Auch beim 0.96" Display gibt es    // 96:  0.96" I2C 128X64  OLED  SSD1306  (https://de.aliexpress.com/item/32643950109.html)
 //          verschiedene Pinbelegungen.        // 7920 3"    SPI Display (12864B for 3D printers with ST7920 chip) (https://www.amazon.de/dp/B09SLXVH1P)
 //          Diese passen u.U. nicht zur Platine              (https://www.amazon.de/AZDelivery-%E2%AD%90%E2%AD%90%E2%AD%90%E2%AD%90%E2%AD%90-Display-Zeichen-Arduino/dp/B07DDKBCY7)
-//                                             //            GND, VCC, V0 = NC, RS = VCC, R/W = SPI_DISP_DAT, E = SPI_DISP_CLK, ... PSB = GND, BLA = VCC, BLK = GND
+//                                                           GND, VCC, V0 = NC, RS = VCC, R/W = SPI_DISP_DAT, E = SPI_DISP_CLK, ... PSB = GND, BLA = VCC, BLK = GND
 #else // ESP32
   #define ROTATE_DISPLAY_180_DEG                  0
   #define OLED_TYP                                13   // 7920
@@ -144,7 +145,6 @@
 #define Z21_ADR_MFX_START                      8256    // Start adress for MFX locos.
 
 #define TEST_LOCO_SELECTION                       0
-//------------------------------------------------
 
 
 
