@@ -23,8 +23,13 @@
   #define LANmaxIP 15
   #define WLANmaxIP 15    //Anzahl Clients ueber ATmega644P
 #elif defined(ESP8266_MCU) || defined(ESP32_MCU)
+<<<<<<< HEAD
   #define LANmaxIP 50     //Clients auf ESP werden als LAN behandelt                                          // 10.07.22:  Old: 20, uses 588 Bytes Ram
   #define WLANmaxIP 0     //no support for Ethernet Shield on ESP!
+=======
+#define LANmaxIP  100     //Clients auf ESP werden als LAN behandelt
+#define WLANmaxIP 0     //no support for Ethernet Shield on ESP!
+>>>>>>> ce9fea7006210508549815c3158e83fcb12ffa3e
 #else   //Arduino UNO
   #define LANmaxIP 5
   #define WLANmaxIP 10    //Anzahl Clients ueber UNO

@@ -269,10 +269,17 @@ void SerialCmd_loop()
      #if defined(ESP32)
         else If_Msg_Start("nvr")     Get_ESP32_NVR_Info();
      #endif
+<<<<<<< HEAD
         else If_Msg_Start("A4")      Haus_Ani1();
         else If_Msg_Start("A5")      Haus_Ani2();
         else If_Msg_Start("A1")      Haus_Ani();
         else If_Msg_Start("A3")      Stummilok_Ani3();
+=======
+	else If_Msg_Start("A4")      Haus_Ani1();
+        else If_Msg_Start("A5")      Haus_Ani2();
+        else If_Msg_Start("A1")      Haus_Ani();
+	else If_Msg_Start("A3")      Stummilok_Ani3();
+>>>>>>> ce9fea7006210508549815c3158e83fcb12ffa3e
         else If_Msg_Start("A2")      Stummilok_Ani2();
         else If_Msg_Start("A")       Stummilok_Ani();
         else Dprintf("Unknown serial command. Enter ? for help.\n");
