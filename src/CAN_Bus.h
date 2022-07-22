@@ -139,11 +139,18 @@
               because the speed is not displayed at all and the speed knob is not turned by a motor is an other
               client changes the speed.
  14.07.22:  - Supporting accessory commands (switches, ...) from Z21 App, WLANmouse and Märklin CAN components.
-              The changes swizches are shown on the OLED
-            - Read the lokoc from the MS2/CSx if the button is pressed longer thän 5 seconds.
+              The changed switches are shown on the OLED
+            - Read the lokos from the MS2/CSx if the button is pressed longer then 5 seconds.
               The existing configuration is deleted. If no märklin device is connected the configuration
               is loaded the next time when powered up.
-
+ 19.07.22:  - The joystick IR-Control from Maerklin has a separate "Stop" key. This is now also supported.
+              It stops the train without changing the direction. If the key is hold for one second the power is
+              turned of/all trains are stopped.
+ 20.07.22:  - Implemented different modes for sending the accessory commands to the CAN: ACCESSORY_CMD_MODE
+ 21.07.22:  - Accessory commands (switches, ...) could be send with the IR-control
+            - Corrected the german umlaut display while reading the loco config from the MS2 / CSx
+ 22.07.22:  - New config defines to change the speed steps used while the +/- key is pold on the IR control
+              for Frank: MAE_IR_FAST_SPEED_STEP, TV_IR_FAST_SPEED_STEP
 
  Adressbereiche
  ~~~~~~~~~~~~~~
@@ -190,6 +197,8 @@
  ToDo:
  ~~~~~
  - Taktfrequenz ESP32 reduzieren damit Stromverbrauch reduziert wird
+ - Anderen CAN Msg ID Hash verwenden wenn dieser bereits belegt ist. Dadurch können mehrere MirZ21
+   parallel betrieben werden ohne dass es zu kollisionen kommt.
 
  - Info wenn Fertig:
    https://www.stummiforum.de/t165375f2-Roco-Z-mit-M-rklin.html
@@ -466,6 +475,12 @@ unsigned long Central_CanId = 0;
 uint16_t      Central_Ver   = 0;
 
 //uint8_t       Loco_Speeds[MAX_LOK_DATA];
+
+#include <bitset>         // std::bitset                                                                      // 21.07.22:
+#define MAX_SWITCHES 2048
+std::bitset<MAX_SWITCHES>  Switches;
+
+
 
 typedef struct  // Variable lok data which are stored in the RAM (and EEPROM*)   (*Only in the MS2_Bridge progam))
   {
@@ -746,6 +761,8 @@ void Send_Accessory_to_LAN(uint16_t Adr, uint8_t Pos, uint8_t Power)            
 
   packetBuffer[7] = 0xA0 | ((Power > 0) ? 0x08:0) | ((Pos > 0) ? 1:0);
   Add_XOR_to_Buffer_and_Send_to_Clients(packetBuffer, sizeof(packetBuffer));
+
+  if (Adr < MAX_SWITCHES) Switches.set(Adr, Pos);                                                             // 21.07.22:
 }
 
 #define ALLWAYS_SEND2WLAN 1+2  // Bitmask which defines where allways send is used. 1:SetDCCSpeed, 2: SetDCC_LokoFkt // 12.07.22:
@@ -919,17 +936,51 @@ void Store_CAN_Data(byte CAN_ID, byte *rxBuf, byte len, uint8_t Send)
      }
 }
 
+
+
+#if   ACCESSORY_CMD_MODE == 1
+                                #define ACC_CMD_ADDR  0x3000
+#elif ACCESSORY_CMD_MODE == 2
+                                #define ACC_CMD_ADDR  0x3800
+#elif ACCESSORY_CMD_MODE == 3
+                                #define ACC_SEND_BOTH 1
+#elif ACCESSORY_CMD_MODE == 4
+
+#else
+      #error "Undefined ACCESSORY_CMD_MODE"
+#endif
+
+
 //-------------------------------------------------------------------------------
 void Receive_Accessory_from_CAN(byte CAN_ID, byte *rxBuf, byte len, uint8_t Send)                             // 14.07.22:
 //-------------------------------------------------------------------------------
 // Store Lok speed, direction and functions from CAN
 {
   if (len <= 4) return;
-
-  uint32_t Adr = Get_UID(rxBuf) - 0x3000;
+  uint16_t Adr = Get_UID(rxBuf);
+  if      (Adr >= 0x3000 && Adr <= 0x33FF)  Adr -= 0x3000;
+  else if (Adr >= 0x3800 && Adr <= 0x3FFF)  Adr -= 0x3800;
   //Dprintf("Accessory %i Pos:%i Current:%i\n", Adr, rxBuf[4], rxBuf[5]);
   Send_Accessory_to_LAN(Adr, rxBuf[4], rxBuf[5]);
 }
+
+#if !ACC_SEND_BOTH
+//---------------------------------------
+uint16_t ACC_Adress_2_CAN(uint16_t Adr)                                                                       // 20.07.22:
+//---------------------------------------
+{
+  #if ACCESSORY_CMD_MODE == 4
+    for (uint16_t i = 0; i < sizeof(MM_Range_Arr)/sizeof(MM_Range_T); i++)
+        {
+        if (Adr >= MM_Range_Arr[i].FromAdr-1 && Adr <= MM_Range_Arr[i].ToAdr-1)
+           return Adr + 0x3000;
+        }
+    return Adr + 0x3800;
+  #else
+    return Adr + ACC_CMD_ADDR;
+  #endif
+}
+#endif
 
 //--------------------------------------------------------------
 void Send_Acc_to_CAN(uint16_t Adr, uint8_t Pos, uint8_t Current)                                              // 14.07.22:
@@ -939,17 +990,30 @@ void Send_Acc_to_CAN(uint16_t Adr, uint8_t Pos, uint8_t Current)                
   if (!CAN_is_ok) return ;
 
   byte Data[8];
-  Adr += 0x3000;
   Data[0] = 0;
   Data[1] = 0;
-  Data[2] = (Adr >> 8)  & 0xFF;
-  Data[3] =  Adr        & 0xFF;
   Data[4] = Pos;
   Data[5] = Current;
   uint8_t Cmd = 0x16;
   uint8_t len = 6;
   uint32_t MsgID = Hash + ((uint32_t)Cmd << 16);
-  can.sendMsgBuf(MsgID, 1, len, Data);
+  if (Adr < MAX_SWITCHES) Switches.set(Adr, Pos);                                                             // 21.07.22:
+  #if ACC_SEND_BOTH
+     Adr += 0x3000;
+     for (uint16_t AddAdr = 0; AddAdr <= 0x800; AddAdr+= 0x800)
+        {
+        Adr += AddAdr;
+        Data[2] = (Adr >> 8)  & 0xFF;
+        Data[3] =  Adr        & 0xFF;
+        can.sendMsgBuf(MsgID, 1, len, Data);
+        }
+  #else
+     uint16_t Adress = ACC_Adress_2_CAN(Adr);
+     Data[2] = (Adress >> 8)  & 0xFF;
+     Data[3] =  Adress        & 0xFF;
+     can.sendMsgBuf(MsgID, 1, len, Data);
+  #endif
+
 }
 
 //--------------------------------------------

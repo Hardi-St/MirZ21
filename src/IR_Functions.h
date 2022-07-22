@@ -29,11 +29,16 @@ uint8_t  Ma_FuKy_Max           = 8;
 uint8_t  TV_FuncKeySelect      = 0;
 uint8_t  TV_FuKy_Max           = 2;
 int16_t  TV_Lok_Nr             = 0;
+int16_t  TV_Switch_Nr          = 0;                                                                           // 21.07.22:
 int16_t  Ex_Lok_Nr             = 0;
 uint8_t  Act_Ma_Lok_Ix         = 0;
 int16_t  Old_Ma_Lok_Ix         = 0xFFFF;
 bool     Show_Temp_Display     = 0;    // Is set to 1 if a temporary display is shown.
 uint32_t LastIRKeyTime         = 0;
+uint32_t Poff_Switch_Time      = 0xFFFFFFFF;                                                                  // 21.07.22:
+uint16_t Poff_Switch_Adr       = 0;
+bool     Poff_Switch_State     = 0;
+
 
 #define PRINT_IR_DEBUG_MESSAGES
 #ifdef PRINT_IR_DEBUG_MESSAGES
@@ -743,57 +748,71 @@ void IncDecOrCheck_IR_Nr(int8_t Mode, int16_t MinNr, int16_t MaxNr)
   IncDecOrCheck_Nr(IR_Nr, Mode, MinNr, MaxNr);
 }
 
+
+//----------------------
+void Check_Poff_Switch()                                                                                      // 21.07.22:
+//----------------------
+// Is called in the loop()
+{
+  if (millis() >= Poff_Switch_Time)
+     {
+     Poff_Switch_Time = 0xFFFFFFFF;
+     //Dprintf("Check_Poff_Switch %i %i\n", Poff_Switch_Adr, Poff_Switch_State); // Debug
+     notifyz21Accessory(Poff_Switch_Adr, Poff_Switch_State, 0);
+     }
+}
+
+//--------------------------------------------
+void Set_Poff_Switch(uint16_t Adr, bool State)                                                                // 21.07.22:
+//--------------------------------------------
+{
+  if (Poff_Switch_Time != 0xFFFFFFFF)
+     {
+     Poff_Switch_Time = 0; // Send power off now to pending call
+     Check_Poff_Switch();
+     }
+  Poff_Switch_Time = millis() + 100;
+  Poff_Switch_Adr   = Adr;
+  Poff_Switch_State = State;
+}
+
 //-----------------------------------------------
 void Set_TV_Switch(int8_t IncMode, int8_t SwMode)
 //-----------------------------------------------
 // IncMode:
 //  1 = Inc
 // -1 = Dec
-//  0 = Only check
+//  0 = Set from IR_Nr
 // SwMode:
 //  0 = Red
 //  1 = Green
 // -1 = Toggle
-// -2 = Nothing or 2x toggle
+// -2 = Nothing, just display the actual state
 {
-  Dprintf("Set_TV_Switch IncMode %i, SwMode %i %i %i\n", IncMode, SwMode, millis() < IR_NR_Timeout,  IR_Nr_DigitNr);
-/*
-  if (millis() < IR_NR_Timeout && IR_Nr_DigitNr > 0)
+  if (millis() < IR_NR_Timeout)
        {
-       IR_Switch_Nr = IR_Nr-1;
-       Dprintf("Set_TV_Switch %i\n", IR_Switch_Nr);
-       // No Beep(50) here because it's generated in TV_Number_Entered()   Indicate that the number was read
-       IR_Nr_DigitNr = 0; // Don't use the entered number a second time
+       TV_Switch_Nr = IR_Nr-1;
+       Beep(50);
        }
-  else Beep_Single_Key(); // Indicate that the key was accepted without entered number
+  else Beep_Single_Key();
 
-  IncDecOrCheck_Nr(IR_Switch_Nr, IncMode, 0, MAX_SWITCH-1);
+  IncDecOrCheck_Nr(TV_Switch_Nr, IncMode, 0, 2047);
 
-  bool Pos;
+  //Dprintf("Set_TV_Switch Adr %i IncMode %i, SwMode %i %i %i\n", TV_Switch_Nr+1, IncMode, SwMode, millis() < IR_NR_Timeout,  IR_Nr_DigitNr);
+
   switch (SwMode)
     {
+    case -1: // Toggle
+             SwMode = !Switches[TV_Switch_Nr];
+             // No break
     case  0:
-    case  1: Set_SwitchPos(IR_Switch_Nr, Pos = SwMode);
+    case  1: Send_Accessory_to_LAN(TV_Switch_Nr, SwMode, 1);
+             Set_Poff_Switch(TV_Switch_Nr, SwMode); // Set power off after 100 ms
              break;
-    case -1: Set_SwitchPos(IR_Switch_Nr, Pos = !Get_SwitchPos(IR_Switch_Nr));
+    case -2: Display_Accessory(TV_Switch_Nr,  Switches[TV_Switch_Nr], 1);
              break;
+    default: Dprintf("ToDo SwMode %i\n", SwMode);
     }
-  Send_DCC_Accessory(IR_Switch_Nr, Pos);
-
-  Enable_Switch_Display();
-
-  #if defined(  PRINT_IR_DEBUG_MESSAGES) && 0
-    IR_Dprintf("Switch %3i: ", IR_Switch_Nr+1);
-    switch (SwMode)
-      {
-      case  0: IR_Dprintf("Red\n");     break;
-      case  1: IR_Dprintf("Green\n");   break;
-      case -1: IR_Dprintf("Toggle\n");  break;
-      case -2: IR_Dprintf("Nothing\n"); break;
-      default: IR_Dprintf("Unknown SwMode %i\n", SwMode);
-      }
-  #endif
-  */
 }
 
 //----------------------------
@@ -1110,11 +1129,12 @@ void Set_Loc_Function(uint8_t Channel, uint8_t KeyNr, uint8_t KeyReleased)
 //--------------------------------------------------------------
 void Chg_Speed(uint8_t Channel, int8_t Direction, int8_t Repeat)
 //--------------------------------------------------------------
+// Is called by the Maerklin IR control
 {
   Set_Ma_IR_Channel(Channel, 1);
-  Set_TV_Lok_Speed(Direction * (Repeat?5:1));
+  Set_TV_Lok_Speed(Direction * (Repeat?MAE_IR_FAST_SPEED_STEP:1));                                            // 22.07.22:  Old: 5 => MAE_IR_FAST_SPEED_STEP
+  //Dprintf("Chg_Speed %i\n", Repeat);
 }
-
 
 
 //---------------------------------------------------
@@ -1237,8 +1257,8 @@ void Proc_TV_IR_Keys(IR_Key_t key, uint16_t Duration)
                                      Loco_DispMode = 3;
                                      Set_TV_Lok_Speed(Mode);
                                      break;
-     case IR_KEY_TV_HOLD_FASTER:     Loco_DispMode = 3; Set_TV_Lok_Speed( 5); break;
-     case IR_KEY_TV_HOLD_SLOWER:     Loco_DispMode = 3; Set_TV_Lok_Speed(-5); break;
+     case IR_KEY_TV_HOLD_FASTER:     Loco_DispMode = 3; Set_TV_Lok_Speed( TV_IR_FAST_SPEED_STEP); break;     // 22.07.22:  Old: 5 => TV_IR_FAST_SPEED_STEP
+     case IR_KEY_TV_HOLD_SLOWER:     Loco_DispMode = 3; Set_TV_Lok_Speed(-TV_IR_FAST_SPEED_STEP); break;     //    "
 
      case IR_KEY_TV_FN11:            Mode++;
      case IR_KEY_TV_FN10:            Mode++;
@@ -1296,11 +1316,12 @@ void Proc_TV_IR_Keys(IR_Key_t key, uint16_t Duration)
      case IR_KEY_M_PRESS_MINUS:
      case IR_KEY_M_HOLD_MINUS:
      case IR_KEY_M_PRESS_PLUS:
-     case IR_KEY_M_HOLD_PLUS:      Chg_Speed(Channel, IR_KEY(key) == IR_KEY_M_PLUS ? +1: -1, key & IR_KEY_HOLD);  // Change the speed
+     case IR_KEY_M_HOLD_PLUS:      Chg_Speed(Channel, IR_KEY(key) == IR_KEY_M_PLUS ? +1: -1, (key & IR_KEY_HOLD)>0);  // Change the speed
                                    break;
 
      case IR_KEY_M_RELEASED_STOP:  Set_Ma_IR_Channel(Channel, 0); Set_TV_Lok_Direction(3); break; // Lok Direction
-
+     case IR_KEY_J_PRESS_STOP:     Set_Ma_IR_Channel(Channel, 0); Set_TV_Lok_Speed(0);     break; // Joystick control Stop    // 19.07.22:
+     case IR_KEY_J_HOLD_STOP:                                                                                                 //   "
      case IR_KEY_M_HOLD_STOP:      IR_Key_Input.Clear(); // Stop generating key messages until the current key is released.
                                    Set_Ma_IR_Channel(Channel, 0);
                                    Set_TV_Emergency_Stop();

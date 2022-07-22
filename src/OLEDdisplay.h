@@ -106,7 +106,7 @@ void Display_setTextSize(uint8_t Size)
      case 14: display.setFont(font_Stummilok2);                     break;
      case 13: display.setFont(font_Weichen);                        break;
      case 16: display.setFont(font_Haus1);                          break;
-     case 17: display.setFont(font_Haus2);                          break;     
+     case 17: display.setFont(font_Haus2);                          break;
      case 12: display.setFont(font_Haus);                           break;
      case 11: display.setFont(font_Stummilok);                      break;
      case 10: display.setFont(font_Fkt_Icons);                      break;  // Font for the Icons

@@ -2048,4 +2048,6 @@ void loop() {
   #endif
 
   OLED_loop();
+
+  Check_Poff_Switch();                                                                                        // 21.07.22:
 }

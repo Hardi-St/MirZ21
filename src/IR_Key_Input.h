@@ -14,6 +14,7 @@
 #define IR_KEY_M_MINUS             0x05
 #define IR_KEY_M_PLUS              0x06
 #define IR_KEY_M_STOP              0x07
+#define IR_KEY_J_STOP              0x08                                                                       // 19.07.22:
 
 #define IR_KEY_M_PRESS_LIGHT       (IR_KEY_M_LIGHT + IR_KEY_PRESSED)
 #define IR_KEY_M_PRESS_F1          (IR_KEY_M_F1    + IR_KEY_PRESSED)
@@ -23,6 +24,7 @@
 #define IR_KEY_M_PRESS_MINUS       (IR_KEY_M_MINUS + IR_KEY_PRESSED)
 #define IR_KEY_M_PRESS_PLUS        (IR_KEY_M_PLUS  + IR_KEY_PRESSED)
 #define IR_KEY_M_PRESS_STOP        (IR_KEY_M_STOP  + IR_KEY_PRESSED)
+#define IR_KEY_J_PRESS_STOP        (IR_KEY_J_STOP  + IR_KEY_PRESSED)                                          // 19.07.22:
 
 #define IR_KEY_M_HOLD_LIGHT        (IR_KEY_M_LIGHT + IR_KEY_HOLD)
 #define IR_KEY_M_HOLD_F1           (IR_KEY_M_F1    + IR_KEY_HOLD)
@@ -32,6 +34,7 @@
 #define IR_KEY_M_HOLD_MINUS        (IR_KEY_M_MINUS + IR_KEY_HOLD)
 #define IR_KEY_M_HOLD_PLUS         (IR_KEY_M_PLUS  + IR_KEY_HOLD)
 #define IR_KEY_M_HOLD_STOP         (IR_KEY_M_STOP  + IR_KEY_HOLD)
+#define IR_KEY_J_HOLD_STOP         (IR_KEY_J_STOP  + IR_KEY_HOLD)
 
 #define IR_KEY_M_RELEASED_LIGHT    (IR_KEY_M_LIGHT + IR_KEY_RELEASED)
 #define IR_KEY_M_RELEASED_F1       (IR_KEY_M_F1    + IR_KEY_RELEASED)
@@ -41,6 +44,7 @@
 #define IR_KEY_M_RELEASED_MINUS    (IR_KEY_M_MINUS + IR_KEY_RELEASED)
 #define IR_KEY_M_RELEASED_PLUS     (IR_KEY_M_PLUS  + IR_KEY_RELEASED)
 #define IR_KEY_M_RELEASED_STOP     (IR_KEY_M_STOP  + IR_KEY_RELEASED)
+#define IR_KEY_J_RELEASED_STOP     (IR_KEY_J_STOP  + IR_KEY_RELEASED)
 
 #ifdef GRUNDIG
 // The Grundig Key use the sufix _G_
@@ -242,7 +246,7 @@
 
 //  New mask for additional numerical keys for switches...   27.09.17
 //    76543210 76543210
-//    phr-cccc kkkkkkkk   k = key 0..7 IR, 8-.. Other
+//    phr-cccc kkkkkkkk   k = key 0..8 IR, 9-.. Other                                                         // 19.07.22:  Old: key 0..7 IR, 8-.. Other
 //                        c = channel 0..15
 //                        p = key pressed
 //                        h = key hold

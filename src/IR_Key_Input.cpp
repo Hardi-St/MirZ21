@@ -192,6 +192,11 @@ IR_Key_t IR_Key_Input_c::Read_IR_Key(uint16_t &Duration)
           case 0x64D: case 0xE4D:           key = IR_CHANNEL_1 + IR_KEY_M_STOP;     break;
           case 0x6CD: case 0xECD:           key = IR_CHANNEL_2 + IR_KEY_M_STOP;     break;
           case 0x70D: case 0xF0D:           key = IR_CHANNEL_3 + IR_KEY_M_STOP;     break;
+          case 0x60C: case 0xE0C:           key = IR_CHANNEL_0 + IR_KEY_J_STOP;     break; // Maerklin Joystick IR control 19.07.22:
+          case 0x64C: case 0xE4C:           key = IR_CHANNEL_1 + IR_KEY_J_STOP;     break; // has a separate STOP button
+          case 0x6CC: case 0xECC:           key = IR_CHANNEL_2 + IR_KEY_J_STOP;     break;
+          case 0x70C: case 0xF0C:           key = IR_CHANNEL_3 + IR_KEY_J_STOP;     break;
+
     #if defined(__AVR_ATmega2560__)
           // Lok Functions Ch0
           case 0x06CE2B0C: case 0x4F3749E1: key = IR_CHANNEL_0 + IR_KEY_M_LIGHT;    break;

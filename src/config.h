@@ -144,7 +144,78 @@
 #define Z21_ADR_MM_START                       8000    // Start adress for MM locos. The adresses before are used for DCC.
 #define Z21_ADR_MFX_START                      8256    // Start adress for MFX locos.
 
-#define TEST_LOCO_SELECTION                       0
+#define TEST_LOCO_SELECTION                       0    // Activates serial commands for testing the loco selection
+
+#define MAE_IR_FAST_SPEED_STEP                    5    // Speed increment step if the +/- key is hold on the Maerklin IR control (Default 5)
+#define TV_IR_FAST_SPEED_STEP                     5    // Speed increment step if the up/down key is hold on the TV IR control (Default 5)
+
+#define ACCESSORY_CMD_MODE                        3    // Define how accessory (switches) commands are
+                                                       // generated on the CAN bus.
+                                                       //  1: MM  (3000+x)
+                                                       //  2: DCC (3800+x)
+                                                       // *3: MM+DCC (both CAN messages are send)
+                                                       //  4: Use the array MM_Range_Arr[] to define the MM
+                                                       //     addressees. All other are DCC
+                                                       // Mode 3 is the standard mode. Here it doesn't matter
+                                                       // how a switch is configured. MM and DCC commands are
+                                                       // generated on the rail signal.
+                                                       // => Higher Load on the rail.
+                                                       // Mode 4 generates only individual defined protocol
+                                                       // for each switch.
+                                                       // Attention: It's not possible to control two switches
+                                                       // with the same address but different protocol
+                                                       // independent. (Same behavior like the MS2.)
+
+#if ACCESSORY_CMD_MODE == 4                            // Only used if ACCESSORY_CMD_MODE = 4
+  typedef struct
+    {
+    uint16_t FromAdr, ToAdr;
+    } MM_Range_T;
+
+    MM_Range_T MM_Range_Arr[] =                        // List of accessory address ranges which use the MM protocol
+                                                       // If ACCESSORY_CMD_MODE 4 is used. All others use DCC.
+                                        {              // Edit the following examples according your needs. Add lines if needed.
+                                          {3,    4  }, // 3-4 = MM
+                                          {100,  100}, // 100 = MM
+                                        };
+#endif
+
+/*
+   ToDo: Untersuchen wie sich eine MM Weiche verhält und "?" Spalte ausfüllen
+
+   Mode   SW      Protok.   MLL DCC                   MM Weiche  Kommentar
+   1      3.121   MM        No                        ?
+   1      3.121   DCC       Nur von CS2 nicht Z21     ?
+   1      3.148   MM        No                        ?
+   1      3.148   DCC       Nur von CS2 nicht Z21     ?
+
+   2      No MS2  ?         OK                        ?          Geht nicht mehr nach einem Neustart ohne MS2
+   2      3.121   MM        OK                        ?          Warum geht das?
+   2      3.121   DCC       OK                        ?
+   2      3.148   MM        OK                        ?          Warum geht das?
+   2      3.148   DCC       OK                        ?
+
+   3      3.121   MM        OK                        ?
+   3      3.121   DCC       OK                        ?
+   3      3.148   MM        OK                        ?
+   3      3.148   DCC       OK                        ?
+
+   MM_Range_T MM_Range_Arr[] = {{3, 4}}
+   4      3.121   MM        Nur Adr 5 von MS2 & Z21   ?
+   4      3.121   DCC       Nur Adr 5 von Z21         ?
+   4      3.148   MM        Nur Adr 5 von MS2 & Z21   ?
+   4      3.148   DCC       Nur Adr 5 von Z21         ?
+
+ Die Gleisbox kann immer beide Protokolle (Getestet mit der Version 1.47).
+ Über den Eintrag im Menü bestimmt man welche CAN Message geschickt wird.
+ Wenn die MirZ21 im ACCESSORY_CMD_MODE 2 oder 3 ist, dann wird ein MM Befehl vom CAN empfangen und als DCC Befehl
+ auf dem CAN wiederholt. Darum schalten die DCC Weichen auch dann wenn in der MS2 das MM Protokoll verwendet wird.
+
+ Der MS2 ist es egal ob ein Zubehörbefehl als MM (3000+x) oder als DCC (38000+x) ankommt. Das Display zeigt
+ die Statusänderung beides mal an.
+ So ist das auch in der MirZ21 implementiert. Der ACCESSORY_CMD_MODE bestimmt nur wie die Messages gesendet werden.
+
+*/
 
 
 

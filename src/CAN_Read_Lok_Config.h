@@ -866,7 +866,9 @@ void Add_Lokdetails_to_Array(char *Buffer, uint16_t LokNr, const char *Name)
   Read_FuncTypes(Buffer, FktArr, Name);
   Write_FktTyp_to_EEPROM(LokNr, FktArr);
 
-  Write_OLED("%3i %s\n", Adr, Name);
+  Write_OLED("%3i\37", Adr);                                                                                  // 21.07.22:  Old: Write_OLED_y
+  display.drawUTF8(21, Write_OLED_y + Write_OLED_LineHeight + 1 , Name);
+  Write_OLED("\n");
 }
 
 
