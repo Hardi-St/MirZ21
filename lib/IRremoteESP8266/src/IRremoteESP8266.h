@@ -104,7 +104,9 @@
 // Enable only the needed IF decoders
 #define _IR_ENABLE_DEFAULT_ false                                                                             // 06.02.22:  Added by Hardi
 #define DECODE_RC5          true   //  RC5   = Grundig RC-YC1,  RC5X  = Maerklin IR Control
-
+#define DECODE_SAMSUNG      true   // Samsung BN59-01301A  https://www.amazon.de/gp/product/B09924JVZ5/
+                                   // Ist nicht so Sendestark wie die Grundig Fernbedienung
+                                   // Retoo Universal Ersatz Fernbedienung, Universalfernbedienung für Samsung Smart TV, LCD, UHD, 4K, Kompatibel mit BN59-01199F, BN59-01175N
 
 
 #ifndef _IR_ENABLE_DEFAULT_

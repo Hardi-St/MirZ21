@@ -808,6 +808,7 @@ void Set_TV_Switch(int8_t IncMode, int8_t SwMode)
     case  0:
     case  1: Send_Accessory_to_LAN(TV_Switch_Nr, SwMode, 1);
              Set_Poff_Switch(TV_Switch_Nr, SwMode); // Set power off after 100 ms
+             Display_Accessory(TV_Switch_Nr,  Switches[TV_Switch_Nr], 1);                                     // 23.07.22:
              break;
     case -2: Display_Accessory(TV_Switch_Nr,  Switches[TV_Switch_Nr], 1);
              break;
@@ -1169,7 +1170,7 @@ void Proc_TV_IR_Keys(IR_Key_t key, uint16_t Duration)
   uint8_t Channel = IR_CHANNEL(key);
   LastIRKeyTime = millis();
 
-  if (Channel == 15 && (key & IR_KEY_PRESSED))                                                                // ToDo: Braucht man hier die Channel abfrage
+  if ((Channel == 14 || Channel == 15) && (key & IR_KEY_PRESSED))                                             // ToDo: Braucht man hier die Channel abfrage
      {
      uint32_t DeltaT = millis() - Last_IR_Key_PressTime;
      Last_IR_Key_PressTime = millis();
@@ -1183,21 +1184,21 @@ void Proc_TV_IR_Keys(IR_Key_t key, uint16_t Duration)
 
   uint8_t Old_Loco_DispMode;
   int8_t Mode = 0;
+  uint8_t Digit = 0;
   switch (key & IR_ANY_KEY)
      {
      //***************** TV IR control **************************
-     case IR_KEY_TV_PRESS_NR0:
-     case IR_KEY_TV_PRESS_NR1:
-     case IR_KEY_TV_PRESS_NR2:
-     case IR_KEY_TV_PRESS_NR3:
-     case IR_KEY_TV_PRESS_NR4:
-     case IR_KEY_TV_PRESS_NR5:
-     case IR_KEY_TV_PRESS_NR6:
-     case IR_KEY_TV_PRESS_NR7:
-     case IR_KEY_TV_PRESS_NR8:
-     case IR_KEY_TV_PRESS_NR9:       // Read several digits and create a number
-                                     {
-                                     uint8_t Digit = (key & IR_ANY_KEY) - IR_KEY_TV_PRESS_NR0;
+     case IR_KEY_TV_PRESS_NR9:       Digit++;
+     case IR_KEY_TV_PRESS_NR8:       Digit++;
+     case IR_KEY_TV_PRESS_NR7:       Digit++;
+     case IR_KEY_TV_PRESS_NR6:       Digit++;
+     case IR_KEY_TV_PRESS_NR5:       Digit++;
+     case IR_KEY_TV_PRESS_NR4:       Digit++;
+     case IR_KEY_TV_PRESS_NR3:       Digit++;
+     case IR_KEY_TV_PRESS_NR2:       Digit++;
+     case IR_KEY_TV_PRESS_NR1:       Digit++;
+     case IR_KEY_TV_PRESS_NR0:       { // Read several digits and create a number
+                                     //uint8_t Digit = (key & IR_ANY_KEY) - IR_KEY_TV_PRESS_NR0;
                                      if (millis() > IR_NR_Timeout) IR_Nr_DigitNr = 0;
                                      if (IR_Nr_DigitNr == 0) IR_Nr = 0;
                                      IR_Nr_DigitNr++;

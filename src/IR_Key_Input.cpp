@@ -188,129 +188,179 @@ IR_Key_t IR_Key_Input_c::Read_IR_Key(uint16_t &Duration)
        switch ((uint32_t)results.value)
           {
           // Lok Stop / Direction
-          case 0x60D: case 0xE0D:           key = IR_CHANNEL_0 + IR_KEY_M_STOP;     break;
-          case 0x64D: case 0xE4D:           key = IR_CHANNEL_1 + IR_KEY_M_STOP;     break;
-          case 0x6CD: case 0xECD:           key = IR_CHANNEL_2 + IR_KEY_M_STOP;     break;
-          case 0x70D: case 0xF0D:           key = IR_CHANNEL_3 + IR_KEY_M_STOP;     break;
-          case 0x60C: case 0xE0C:           key = IR_CHANNEL_0 + IR_KEY_J_STOP;     break; // Maerklin Joystick IR control 19.07.22:
-          case 0x64C: case 0xE4C:           key = IR_CHANNEL_1 + IR_KEY_J_STOP;     break; // has a separate STOP button
-          case 0x6CC: case 0xECC:           key = IR_CHANNEL_2 + IR_KEY_J_STOP;     break;
-          case 0x70C: case 0xF0C:           key = IR_CHANNEL_3 + IR_KEY_J_STOP;     break;
+          case 0x60D: case 0xE0D:           key = IR_CHANNEL_0 + IR_KEY_M_STOP;          break;
+          case 0x64D: case 0xE4D:           key = IR_CHANNEL_1 + IR_KEY_M_STOP;          break;
+          case 0x6CD: case 0xECD:           key = IR_CHANNEL_2 + IR_KEY_M_STOP;          break;
+          case 0x70D: case 0xF0D:           key = IR_CHANNEL_3 + IR_KEY_M_STOP;          break;
+          case 0x60C: case 0xE0C:           key = IR_CHANNEL_0 + IR_KEY_J_STOP;          break; // Maerklin Joystick IR control 19.07.22:
+          case 0x64C: case 0xE4C:           key = IR_CHANNEL_1 + IR_KEY_J_STOP;          break; // has a separate STOP button
+          case 0x6CC: case 0xECC:           key = IR_CHANNEL_2 + IR_KEY_J_STOP;          break;
+          case 0x70C: case 0xF0C:           key = IR_CHANNEL_3 + IR_KEY_J_STOP;          break;
 
     #if defined(__AVR_ATmega2560__)
           // Lok Functions Ch0
-          case 0x06CE2B0C: case 0x4F3749E1: key = IR_CHANNEL_0 + IR_KEY_M_LIGHT;    break;
-          case 0x03CE2655: case 0x52374E98: key = IR_CHANNEL_0 + IR_KEY_M_F1;       break;
-          case 0x2C7541E5: case 0xFF586BFC: key = IR_CHANNEL_0 + IR_KEY_M_F2;       break;
-          case 0x90B9D196: case 0xC54BA357: key = IR_CHANNEL_0 + IR_KEY_M_F3;       break;
-          case 0x15910C2B: case 0x163CA1BA: key = IR_CHANNEL_0 + IR_KEY_M_F4;       break;
+          case 0x06CE2B0C: case 0x4F3749E1: key = IR_CHANNEL_0 + IR_KEY_M_LIGHT;         break;
+          case 0x03CE2655: case 0x52374E98: key = IR_CHANNEL_0 + IR_KEY_M_F1;            break;
+          case 0x2C7541E5: case 0xFF586BFC: key = IR_CHANNEL_0 + IR_KEY_M_F2;            break;
+          case 0x90B9D196: case 0xC54BA357: key = IR_CHANNEL_0 + IR_KEY_M_F3;            break;
+          case 0x15910C2B: case 0x163CA1BA: key = IR_CHANNEL_0 + IR_KEY_M_F4;            break;
           // Lok Functions Ch1
-          case 0x08CB39EB: case 0xEE2DF3BA: key = IR_CHANNEL_1 + IR_KEY_M_LIGHT;    break;
-          case 0x07CB3856: case 0xEF2DF54F: key = IR_CHANNEL_1 + IR_KEY_M_F1;       break;
-          case 0x0CB88732: case 0x1C76D2AF: key = IR_CHANNEL_1 + IR_KEY_M_F2;       break;
-          case 0x7A7A608D: case 0x7C7ECD18: key = IR_CHANNEL_1 + IR_KEY_M_F3;       break;
-          case 0x19296A5:  case 0x279CC338: key = IR_CHANNEL_1 + IR_KEY_M_F4;       break;
+          case 0x08CB39EB: case 0xEE2DF3BA: key = IR_CHANNEL_1 + IR_KEY_M_LIGHT;         break;
+          case 0x07CB3856: case 0xEF2DF54F: key = IR_CHANNEL_1 + IR_KEY_M_F1;            break;
+          case 0x0CB88732: case 0x1C76D2AF: key = IR_CHANNEL_1 + IR_KEY_M_F2;            break;
+          case 0x7A7A608D: case 0x7C7ECD18: key = IR_CHANNEL_1 + IR_KEY_M_F3;            break;
+          case 0x19296A5:  case 0x279CC338: key = IR_CHANNEL_1 + IR_KEY_M_F4;            break;
           // Lok Functions Ch2
-          case 0x098A2054: case 0xD87A0659: key = IR_CHANNEL_2 + IR_KEY_M_LIGHT;    break;
-          case 0x068A1B9D: case 0xDB7A0B10: key = IR_CHANNEL_2 + IR_KEY_M_F1;       break;
-          case 0x43E73E04: case 0xC7F7DB9D: key = IR_CHANNEL_2 + IR_KEY_M_F2;       break;
-          case 0x4E8E5FCF: case 0x9375C6DE: key = IR_CHANNEL_2 + IR_KEY_M_F3;       break;
-          case 0x5ACB73C2: case 0xB113A5E3: key = IR_CHANNEL_2 + IR_KEY_M_F4;       break;
+          case 0x098A2054: case 0xD87A0659: key = IR_CHANNEL_2 + IR_KEY_M_LIGHT;         break;
+          case 0x068A1B9D: case 0xDB7A0B10: key = IR_CHANNEL_2 + IR_KEY_M_F1;            break;
+          case 0x43E73E04: case 0xC7F7DB9D: key = IR_CHANNEL_2 + IR_KEY_M_F2;            break;
+          case 0x4E8E5FCF: case 0x9375C6DE: key = IR_CHANNEL_2 + IR_KEY_M_F3;            break;
+          case 0x5ACB73C2: case 0xB113A5E3: key = IR_CHANNEL_2 + IR_KEY_M_F4;            break;
           // Lok Functions Ch3
-          case 0xCFAA45D8: case 0xD65BF5ED: key = IR_CHANNEL_3 + IR_KEY_M_LIGHT;    break;
-          case 0xCCAA4121: case 0xD95BFAA4: key = IR_CHANNEL_3 + IR_KEY_M_F1;       break;
-          case 0xBBD55EE8: case 0xBFA79411: key = IR_CHANNEL_3 + IR_KEY_M_F2;       break;
-          case 0x4C704F63: case 0x5995EC62: key = IR_CHANNEL_3 + IR_KEY_M_F3;       break;
-          case 0xA8C35E57: case 0xD2B994A6: key = IR_CHANNEL_3 + IR_KEY_M_F4;       break;
+          case 0xCFAA45D8: case 0xD65BF5ED: key = IR_CHANNEL_3 + IR_KEY_M_LIGHT;         break;
+          case 0xCCAA4121: case 0xD95BFAA4: key = IR_CHANNEL_3 + IR_KEY_M_F1;            break;
+          case 0xBBD55EE8: case 0xBFA79411: key = IR_CHANNEL_3 + IR_KEY_M_F2;            break;
+          case 0x4C704F63: case 0x5995EC62: key = IR_CHANNEL_3 + IR_KEY_M_F3;            break;
+          case 0xA8C35E57: case 0xD2B994A6: key = IR_CHANNEL_3 + IR_KEY_M_F4;            break;
     #else // ESP8266 library
           // Lok Functions Ch0
-          case 0x1E10: case 0x1610:         key = IR_CHANNEL_0 + IR_KEY_M_LIGHT;    break;
-          case 0x1E11: case 0x1611:         key = IR_CHANNEL_0 + IR_KEY_M_F1;       break;
-          case 0x1E12: case 0x1612:         key = IR_CHANNEL_0 + IR_KEY_M_F2;       break;
-          case 0x1E13: case 0x1613:         key = IR_CHANNEL_0 + IR_KEY_M_F3;       break;
-          case 0x1E14: case 0x1614:         key = IR_CHANNEL_0 + IR_KEY_M_F4;       break;
+          case 0x1E10: case 0x1610:         key = IR_CHANNEL_0 + IR_KEY_M_LIGHT;         break;
+          case 0x1E11: case 0x1611:         key = IR_CHANNEL_0 + IR_KEY_M_F1;            break;
+          case 0x1E12: case 0x1612:         key = IR_CHANNEL_0 + IR_KEY_M_F2;            break;
+          case 0x1E13: case 0x1613:         key = IR_CHANNEL_0 + IR_KEY_M_F3;            break;
+          case 0x1E14: case 0x1614:         key = IR_CHANNEL_0 + IR_KEY_M_F4;            break;
           // Lok Functions Ch1
-          case 0x1E50: case 0x1650:         key = IR_CHANNEL_1 + IR_KEY_M_LIGHT;    break;
-          case 0x1E51: case 0x1651:         key = IR_CHANNEL_1 + IR_KEY_M_F1;       break;
-          case 0x1E52: case 0x1652:         key = IR_CHANNEL_1 + IR_KEY_M_F2;       break;
-          case 0x1E53: case 0x1653:         key = IR_CHANNEL_1 + IR_KEY_M_F3;       break;
-          case 0x1E54: case 0x1654:         key = IR_CHANNEL_1 + IR_KEY_M_F4;       break;
+          case 0x1E50: case 0x1650:         key = IR_CHANNEL_1 + IR_KEY_M_LIGHT;         break;
+          case 0x1E51: case 0x1651:         key = IR_CHANNEL_1 + IR_KEY_M_F1;            break;
+          case 0x1E52: case 0x1652:         key = IR_CHANNEL_1 + IR_KEY_M_F2;            break;
+          case 0x1E53: case 0x1653:         key = IR_CHANNEL_1 + IR_KEY_M_F3;            break;
+          case 0x1E54: case 0x1654:         key = IR_CHANNEL_1 + IR_KEY_M_F4;            break;
           // Lok Functions Ch2
-          case 0x1ED0: case 0x16D0:         key = IR_CHANNEL_2 + IR_KEY_M_LIGHT;    break;
-          case 0x1ED1: case 0x16D1:         key = IR_CHANNEL_2 + IR_KEY_M_F1;       break;
-          case 0x1ED2: case 0x16D2:         key = IR_CHANNEL_2 + IR_KEY_M_F2;       break;
-          case 0x1ED3: case 0x16D3:         key = IR_CHANNEL_2 + IR_KEY_M_F3;       break;
-          case 0x1ED4: case 0x16D4:         key = IR_CHANNEL_2 + IR_KEY_M_F4;       break;
+          case 0x1ED0: case 0x16D0:         key = IR_CHANNEL_2 + IR_KEY_M_LIGHT;         break;
+          case 0x1ED1: case 0x16D1:         key = IR_CHANNEL_2 + IR_KEY_M_F1;            break;
+          case 0x1ED2: case 0x16D2:         key = IR_CHANNEL_2 + IR_KEY_M_F2;            break;
+          case 0x1ED3: case 0x16D3:         key = IR_CHANNEL_2 + IR_KEY_M_F3;            break;
+          case 0x1ED4: case 0x16D4:         key = IR_CHANNEL_2 + IR_KEY_M_F4;            break;
           // Lok Functions Ch3
-          case 0x1F10: case 0x1710:         key = IR_CHANNEL_3 + IR_KEY_M_LIGHT;    break;
-          case 0x1F11: case 0x1711:         key = IR_CHANNEL_3 + IR_KEY_M_F1;       break;
-          case 0x1F12: case 0x1712:         key = IR_CHANNEL_3 + IR_KEY_M_F2;       break;
-          case 0x1F13: case 0x1713:         key = IR_CHANNEL_3 + IR_KEY_M_F3;       break;
-          case 0x1F14: case 0x1714:         key = IR_CHANNEL_3 + IR_KEY_M_F4;       break;
+          case 0x1F10: case 0x1710:         key = IR_CHANNEL_3 + IR_KEY_M_LIGHT;         break;
+          case 0x1F11: case 0x1711:         key = IR_CHANNEL_3 + IR_KEY_M_F1;            break;
+          case 0x1F12: case 0x1712:         key = IR_CHANNEL_3 + IR_KEY_M_F2;            break;
+          case 0x1F13: case 0x1713:         key = IR_CHANNEL_3 + IR_KEY_M_F3;            break;
+          case 0x1F14: case 0x1714:         key = IR_CHANNEL_3 + IR_KEY_M_F4;            break;
      #endif
           // Speed keys
-          case 0x611: case 0xE11:           key = IR_CHANNEL_0 + IR_KEY_M_MINUS;    break;
-          case 0x651: case 0xE51:           key = IR_CHANNEL_1 + IR_KEY_M_MINUS;    break;
-          case 0x6D1: case 0xED1:           key = IR_CHANNEL_2 + IR_KEY_M_MINUS;    break;
-          case 0x711: case 0xF11:           key = IR_CHANNEL_3 + IR_KEY_M_MINUS;    break;
-          case 0x610: case 0xE10:           key = IR_CHANNEL_0 + IR_KEY_M_PLUS;     break;
-          case 0x650: case 0xE50:           key = IR_CHANNEL_1 + IR_KEY_M_PLUS;     break;
-          case 0x6D0: case 0xED0:           key = IR_CHANNEL_2 + IR_KEY_M_PLUS;     break;
-          case 0x710: case 0xF10:           key = IR_CHANNEL_3 + IR_KEY_M_PLUS;     break;
-#ifdef GRUNDIG // RC-GD1 / RC-YC1
-          case 0x00:  case 0x800:           key = IR_CHANNEL_15+ IR_KEY_G_NR0;      break;
-          case 0x01:  case 0x801:           key = IR_CHANNEL_15+ IR_KEY_G_NR1;      break;
-          case 0x02:  case 0x802:           key = IR_CHANNEL_15+ IR_KEY_G_NR2;      break;
-          case 0x03:  case 0x803:           key = IR_CHANNEL_15+ IR_KEY_G_NR3;      break;
-          case 0x04:  case 0x804:           key = IR_CHANNEL_15+ IR_KEY_G_NR4;      break;
-          case 0x05:  case 0x805:           key = IR_CHANNEL_15+ IR_KEY_G_NR5;      break;
-          case 0x06:  case 0x806:           key = IR_CHANNEL_15+ IR_KEY_G_NR6;      break;
-          case 0x07:  case 0x807:           key = IR_CHANNEL_15+ IR_KEY_G_NR7;      break;
-          case 0x08:  case 0x808:           key = IR_CHANNEL_15+ IR_KEY_G_NR8;      break;
-          case 0x09:  case 0x809:           key = IR_CHANNEL_15+ IR_KEY_G_NR9;      break;
-          case 0x0C:  case 0x80C:           key = IR_CHANNEL_15+ IR_KEY_G_POWER;    break;
-          case 0x0D:  case 0x80D:           key = IR_CHANNEL_15+ IR_KEY_G_MUTE;     break;
-          case 0x10:  case 0x810:           key = IR_CHANNEL_15+ IR_KEY_G_V_PLUS;   break;
-          case 0x11:  case 0x811:           key = IR_CHANNEL_15+ IR_KEY_G_V_MINUS;  break;
-          case 0x12:  case 0x812:           key = IR_CHANNEL_15+ IR_KEY_G_RIGHT;    break;
-          case 0x13:  case 0x813:           key = IR_CHANNEL_15+ IR_KEY_G_LEFT;     break;
-          case 0x16:  case 0x816:           key = IR_CHANNEL_15+ IR_KEY_G_UP;       break;
-          case 0x17:  case 0x817:           key = IR_CHANNEL_15+ IR_KEY_G_DOWN;     break;
-          case 0x20:  case 0x820:           key = IR_CHANNEL_15+ IR_KEY_G_PR_PLUS;  break;
-          case 0x21:  case 0x821:           key = IR_CHANNEL_15+ IR_KEY_G_PR_MINUS; break;
-          case 0x35:  case 0x835:           key = IR_CHANNEL_15+ IR_KEY_G_OK;       break;
-          case 0x36:  case 0x836:           key = IR_CHANNEL_15+ IR_KEY_G_GREEN;    break;
-          case 0x37:  case 0x837:           key = IR_CHANNEL_15+ IR_KEY_G_RED;      break;
-          case 0x23:  case 0x823:           key = IR_CHANNEL_15+ IR_KEY_G_16_9;     break;
-          case 0x22:  case 0x822:           key = IR_CHANNEL_15+ IR_KEY_G_REPEAT;   break;
-          case 0x38:  case 0x838:           key = IR_CHANNEL_15+ IR_KEY_G_A_B;      break;
-          case 0x25:  case 0x825:           key = IR_CHANNEL_15+ IR_KEY_G_EPG;      break;
-          case 0x2D:  case 0x82D:           key = IR_CHANNEL_15+ IR_KEY_G_FIND;     break;
-          case 0x19:  case 0x819:           key = IR_CHANNEL_15+ IR_KEY_G_M;        break;
-          case 0x27:  case 0x827:           key = IR_CHANNEL_15+ IR_KEY_G_BACK;     break;
-          case 0x2A:  case 0x82A:           key = IR_CHANNEL_15+ IR_KEY_G_i;        break;
-          case 0x32:  case 0x832:           key = IR_CHANNEL_15+ IR_KEY_G_YELLOW;   break;
-          case 0x34:  case 0x834:           key = IR_CHANNEL_15+ IR_KEY_G_BLUE;     break;
-          case 0x3C:  case 0x83C:           key = IR_CHANNEL_15+ IR_KEY_G_TXT;      break;
-          case 0x29:  case 0x829:           key = IR_CHANNEL_15+ IR_KEY_G_R;        break;
-          case 0x30:  case 0x830:           key = IR_CHANNEL_15+ IR_KEY_G_BOX;      break;
-          case 0x24:  case 0x824:           key = IR_CHANNEL_15+ IR_KEY_G_SPEAKER;  break;
-
-
+          case 0x611: case 0xE11:           key = IR_CHANNEL_0 + IR_KEY_M_MINUS;         break;
+          case 0x651: case 0xE51:           key = IR_CHANNEL_1 + IR_KEY_M_MINUS;         break;
+          case 0x6D1: case 0xED1:           key = IR_CHANNEL_2 + IR_KEY_M_MINUS;         break;
+          case 0x711: case 0xF11:           key = IR_CHANNEL_3 + IR_KEY_M_MINUS;         break;
+          case 0x610: case 0xE10:           key = IR_CHANNEL_0 + IR_KEY_M_PLUS;          break;
+          case 0x650: case 0xE50:           key = IR_CHANNEL_1 + IR_KEY_M_PLUS;          break;
+          case 0x6D0: case 0xED0:           key = IR_CHANNEL_2 + IR_KEY_M_PLUS;          break;
+          case 0x710: case 0xF10:           key = IR_CHANNEL_3 + IR_KEY_M_PLUS;          break;
+#ifdef USE_GRUNDIG // RC-GD1 / RC-YC1
+          case 0x00:  case 0x800:           key = IR_CHANNEL_15+ IR_KEY_G_NR0;           break;
+          case 0x01:  case 0x801:           key = IR_CHANNEL_15+ IR_KEY_G_NR1;           break;
+          case 0x02:  case 0x802:           key = IR_CHANNEL_15+ IR_KEY_G_NR2;           break;
+          case 0x03:  case 0x803:           key = IR_CHANNEL_15+ IR_KEY_G_NR3;           break;
+          case 0x04:  case 0x804:           key = IR_CHANNEL_15+ IR_KEY_G_NR4;           break;
+          case 0x05:  case 0x805:           key = IR_CHANNEL_15+ IR_KEY_G_NR5;           break;
+          case 0x06:  case 0x806:           key = IR_CHANNEL_15+ IR_KEY_G_NR6;           break;
+          case 0x07:  case 0x807:           key = IR_CHANNEL_15+ IR_KEY_G_NR7;           break;
+          case 0x08:  case 0x808:           key = IR_CHANNEL_15+ IR_KEY_G_NR8;           break;
+          case 0x09:  case 0x809:           key = IR_CHANNEL_15+ IR_KEY_G_NR9;           break;
+          case 0x0C:  case 0x80C:           key = IR_CHANNEL_15+ IR_KEY_G_POWER;         break;
+          case 0x0D:  case 0x80D:           key = IR_CHANNEL_15+ IR_KEY_G_MUTE;          break;
+          case 0x10:  case 0x810:           key = IR_CHANNEL_15+ IR_KEY_G_V_PLUS;        break;
+          case 0x11:  case 0x811:           key = IR_CHANNEL_15+ IR_KEY_G_V_MINUS;       break;
+          case 0x12:  case 0x812:           key = IR_CHANNEL_15+ IR_KEY_G_RIGHT;         break;
+          case 0x13:  case 0x813:           key = IR_CHANNEL_15+ IR_KEY_G_LEFT;          break;
+          case 0x16:  case 0x816:           key = IR_CHANNEL_15+ IR_KEY_G_UP;            break;
+          case 0x17:  case 0x817:           key = IR_CHANNEL_15+ IR_KEY_G_DOWN;          break;
+          case 0x20:  case 0x820:           key = IR_CHANNEL_15+ IR_KEY_G_PR_PLUS;       break;
+          case 0x21:  case 0x821:           key = IR_CHANNEL_15+ IR_KEY_G_PR_MINUS;      break;
+          case 0x35:  case 0x835:           key = IR_CHANNEL_15+ IR_KEY_G_OK;            break;
+          case 0x36:  case 0x836:           key = IR_CHANNEL_15+ IR_KEY_G_GREEN;         break;
+          case 0x37:  case 0x837:           key = IR_CHANNEL_15+ IR_KEY_G_RED;           break;
+          case 0x23:  case 0x823:           key = IR_CHANNEL_15+ IR_KEY_G_16_9;          break;
+          case 0x22:  case 0x822:           key = IR_CHANNEL_15+ IR_KEY_G_REPEAT;        break;
+          case 0x38:  case 0x838:           key = IR_CHANNEL_15+ IR_KEY_G_A_B;           break;
+          case 0x25:  case 0x825:           key = IR_CHANNEL_15+ IR_KEY_G_EPG;           break;
+          case 0x2D:  case 0x82D:           key = IR_CHANNEL_15+ IR_KEY_G_FIND;          break;
+          case 0x19:  case 0x819:           key = IR_CHANNEL_15+ IR_KEY_G_M;             break;
+          case 0x27:  case 0x827:           key = IR_CHANNEL_15+ IR_KEY_G_BACK;          break;
+          case 0x2A:  case 0x82A:           key = IR_CHANNEL_15+ IR_KEY_G_i;             break;
+          case 0x32:  case 0x832:           key = IR_CHANNEL_15+ IR_KEY_G_YELLOW;        break;
+          case 0x34:  case 0x834:           key = IR_CHANNEL_15+ IR_KEY_G_BLUE;          break;
+          case 0x3C:  case 0x83C:           key = IR_CHANNEL_15+ IR_KEY_G_TXT;           break;
+          case 0x29:  case 0x829:           key = IR_CHANNEL_15+ IR_KEY_G_R;             break;
+          case 0x30:  case 0x830:           key = IR_CHANNEL_15+ IR_KEY_G_BOX;           break;
+          case 0x24:  case 0x824:           key = IR_CHANNEL_15+ IR_KEY_G_SPEAKER;       break;
 #endif
+
+#ifdef USE_SAMSUNG // Samsung BN59-01301A  https://www.amazon.de/gp/product/B09924JVZ5/                           // 23.07.22:
+                   // Retoo Universal Ersatz Fernbedienung, Universalfernbedienung für Samsung Smart TV, LCD, UHD, 4K, Kompatibel mit BN59-01199F, BN59-01175N
+  #ifndef DECODE_SAMSUNG
+    #error "DECODE_SAMSUNG must be enabled in IRremoteESP8266.h"
+  #endif
+          case 0xE0E040BF:                  key = IR_CHANNEL_14+ IR_KEY_S_POWER;         break;
+          case 0xE0E0807F:                  key = IR_CHANNEL_14+ IR_KEY_S_SOURCE;        break;
+          case 0xE0E020DF:                  key = IR_CHANNEL_14+ IR_KEY_S_NR1;           break;
+          case 0xE0E0A05F:                  key = IR_CHANNEL_14+ IR_KEY_S_NR2;           break;
+          case 0xE0E0609F:                  key = IR_CHANNEL_14+ IR_KEY_S_NR3;           break;
+          case 0xE0E010EF:                  key = IR_CHANNEL_14+ IR_KEY_S_NR4;           break;
+          case 0xE0E0906F:                  key = IR_CHANNEL_14+ IR_KEY_S_NR5;           break;
+          case 0xE0E050AF:                  key = IR_CHANNEL_14+ IR_KEY_S_NR6;           break;
+          case 0xE0E030CF:                  key = IR_CHANNEL_14+ IR_KEY_S_NR7;           break;
+          case 0xE0E0B04F:                  key = IR_CHANNEL_14+ IR_KEY_S_NR8;           break;
+          case 0xE0E0708F:                  key = IR_CHANNEL_14+ IR_KEY_S_NR9;           break;
+          case 0xE0E0C43B:                  key = IR_CHANNEL_14+ IR_KEY_S_MINUS;         break;
+          case 0xE0E08877:                  key = IR_CHANNEL_14+ IR_KEY_S_NR0;           break;
+          case 0xE0E0C837:                  key = IR_CHANNEL_14+ IR_KEY_S_PRE_CH;        break;
+          case 0xE0E0E01F:                  key = IR_CHANNEL_14+ IR_KEY_S_VOL_PLUS;      break;
+          case 0xE0E0F00F:                  key = IR_CHANNEL_14+ IR_KEY_S_MUTE;          break;
+          case 0xE0E048B7:                  key = IR_CHANNEL_14+ IR_KEY_S_CH_PLUS;       break;
+          case 0xE0E0D02F:                  key = IR_CHANNEL_14+ IR_KEY_S_VOL_MINUS;     break;
+          case 0xE0E0D629:                  key = IR_CHANNEL_14+ IR_KEY_S_CH_LIST;       break;
+          case 0xE0E008F7:                  key = IR_CHANNEL_14+ IR_KEY_S_CH_MINUS;      break;
+          case 0xE0E0C03F:                  key = IR_CHANNEL_14+ IR_KEY_S_SLEEP;         break;
+          case 0xE0E09E61:                  key = IR_CHANNEL_14+ IR_KEY_S_HOME;          break;
+          case 0xE0E0F20D:                  key = IR_CHANNEL_14+ IR_KEY_S_GUIDE;         break;
+          case 0xE0E058A7:                  key = IR_CHANNEL_14+ IR_KEY_S_SETTINGS;      break;
+          case 0xE0E006F9:                  key = IR_CHANNEL_14+ IR_KEY_S_CURSOR_UP;     break;
+          case 0xE0E0F807:                  key = IR_CHANNEL_14+ IR_KEY_S_INFO;          break;
+          case 0xE0E0A659:                  key = IR_CHANNEL_14+ IR_KEY_S_CURSOR_LEFT;   break;
+          case 0xE0E016E9:                  key = IR_CHANNEL_14+ IR_KEY_S_CURSOR_CENTER; break;
+          case 0xE0E046B9:                  key = IR_CHANNEL_14+ IR_KEY_S_CURSOR_RIGHT;  break;
+          case 0xE0E01AE5:                  key = IR_CHANNEL_14+ IR_KEY_S_RETURN;        break;
+          case 0xE0E08679:                  key = IR_CHANNEL_14+ IR_KEY_S_CURSOR_DOWN;   break;
+          case 0xE0E0B44B:                  key = IR_CHANNEL_14+ IR_KEY_S_EXIT;          break;
+          case 0xE0E036C9:                  key = IR_CHANNEL_14+ IR_KEY_S_A;             break;
+          case 0xE0E028D7:                  key = IR_CHANNEL_14+ IR_KEY_S_B;             break;
+          case 0xE0E0A857:                  key = IR_CHANNEL_14+ IR_KEY_S_C;             break;
+          case 0xE0E06897:                  key = IR_CHANNEL_14+ IR_KEY_S_D;             break;
+          case 0xE0E0FC03:                  key = IR_CHANNEL_14+ IR_KEY_S_E_MANUAL;      break;
+          case 0xE0E07C83:                  key = IR_CHANNEL_14+ IR_KEY_S_P_SIZE;        break;
+          case 0xE0E0A45B:                  key = IR_CHANNEL_14+ IR_KEY_S_CC_VD;         break;
+          case 0xE0E0629D:                  key = IR_CHANNEL_14+ IR_KEY_S_STOP;          break;
+          case 0xE0E0A25D:                  key = IR_CHANNEL_14+ IR_KEY_S_FAST_REVERSE;  break;
+          case 0xE0E0E21D:                  key = IR_CHANNEL_14+ IR_KEY_S_PLAY;          break;
+          case 0xE0E052AD:                  key = IR_CHANNEL_14+ IR_KEY_S_PAUSE;         break;
+          case 0xE0E012ED:                  key = IR_CHANNEL_14+ IR_KEY_S_FAST_FORWARD;  break;
+#endif
+
 #if 0 // "X96 Mini Android-TV-Box" remote control from Amazon: https://www.amazon.de/gp/product/B0797X28YS
       // Reagiert nicht besonders gut
       // #define DECODE_NEC in "IRremote_Maerklin.h" to read the remote control
-          case 0x807F728D:                  key = IR_CHANNEL_15+ IR_KEY_NR1;      break;
-          case 0x807FB04F:                  key = IR_CHANNEL_15+ IR_KEY_NR2;      break;
-          case 0x807F30CF:                  key = IR_CHANNEL_15+ IR_KEY_NR3;      break;
-          case 0x807F52AD:                  key = IR_CHANNEL_15+ IR_KEY_NR4;      break;
-          case 0x807F906F:                  key = IR_CHANNEL_15+ IR_KEY_NR5;      break;
-          case 0x807F10EF:                  key = IR_CHANNEL_15+ IR_KEY_NR6;      break;
-          case 0x807F629D:                  key = IR_CHANNEL_15+ IR_KEY_NR7;      break;
-          case 0x807FA05F:                  key = IR_CHANNEL_15+ IR_KEY_NR8;      break;
-          case 0x807F20DF:                  key = IR_CHANNEL_15+ IR_KEY_NR9;      break;
-          case 0x807F807F:                  key = IR_CHANNEL_15+ IR_KEY_NR0;      break;
+          case 0x807F728D:                  key = IR_CHANNEL_15+ IR_KEY_NR1;             break;
+          case 0x807FB04F:                  key = IR_CHANNEL_15+ IR_KEY_NR2;             break;
+          case 0x807F30CF:                  key = IR_CHANNEL_15+ IR_KEY_NR3;             break;
+          case 0x807F52AD:                  key = IR_CHANNEL_15+ IR_KEY_NR4;             break;
+          case 0x807F906F:                  key = IR_CHANNEL_15+ IR_KEY_NR5;             break;
+          case 0x807F10EF:                  key = IR_CHANNEL_15+ IR_KEY_NR6;             break;
+          case 0x807F629D:                  key = IR_CHANNEL_15+ IR_KEY_NR7;             break;
+          case 0x807FA05F:                  key = IR_CHANNEL_15+ IR_KEY_NR8;             break;
+          case 0x807F20DF:                  key = IR_CHANNEL_15+ IR_KEY_NR9;             break;
+          case 0x807F807F:                  key = IR_CHANNEL_15+ IR_KEY_NR0;             break;
 #endif
           default: KnownKey = 0;
                    if (results.decode_type != UNKNOWN)
