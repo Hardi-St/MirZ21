@@ -151,7 +151,7 @@
             - Corrected the german umlaut display while reading the loco config from the MS2 / CSx
  22.07.22:  - New config defines to change the speed steps used while the +/- key is pold on the IR control
               for Frank: MAE_IR_FAST_SPEED_STEP, TV_IR_FAST_SPEED_STEP
- 23.07.22:  - Display stitch state if controlled by IR-control
+ 23.07.22:  - Display switch state if controlled by IR-control
             - Support for Samsung BN59-01301A IR control https://www.amazon.de/gp/product/B09924JVZ5/
 
 
