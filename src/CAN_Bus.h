@@ -155,7 +155,7 @@
             - Support for Samsung BN59-01301A IR control https://www.amazon.de/gp/product/B09924JVZ5/
 
 
- ToDo: Anzeige der Weiche geht nicht mer bei 16:9, AB, Repeat
+ ToDo: Anzeige der Weiche geht nicht mehr bei 16:9, AB, Repeat
 
  Adressbereiche
  ~~~~~~~~~~~~~~
@@ -201,6 +201,16 @@
 
  ToDo:
  ~~~~~
+ - Bei Philip https://pgahtow.de/w/Z21_Arduino_Zentrale_(ESP32) unten
+   findet man:
+   "Im ESP32 Core gibt es ein Problem mit dem "timerAlarmWrite()" der aus Platzgründen zur Laufzeit
+    aus dem Code-Cache entfernt wird! Dann stürzt der ESP beim Nächsten Interrupt ab. Zur Behebung
+    ist dieser Patch notwendig: Resolve crash with timer interrupt functions called from ISR (#4684)"
+    => https://github.com/espressif/arduino-esp32/commit/be77bd4e27228e10cf7132668f0f1fd2172f4a37
+   Das könnte das Problem mit den Abstürzen beim ESP32 erklären
+
+ - Zip Datei mus 06 06 enthalten laut einem Thread im Forum
+
  - Taktfrequenz ESP32 reduzieren damit Stromverbrauch reduziert wird
  - Anderen CAN Msg ID Hash verwenden wenn dieser bereits belegt ist. Dadurch können mehrere MirZ21
    parallel betrieben werden ohne dass es zu kollisionen kommt.
@@ -541,6 +551,7 @@ void PrintFuncDesc(unsigned long rxId, byte len, byte *rxBuf)
 {
   unsigned char Id = (rxId >> 16) & 0xFF; // CAN_ID id used in cs2CAN-Protokoll-2_0.pdf in Red letters
 
+/* 22.09.23:  Disabled
   static byte first = 1;
   if (first) Dprintf("Disabled messages: Ping\n"); // Debug
   first = 0;
@@ -548,8 +559,8 @@ void PrintFuncDesc(unsigned long rxId, byte len, byte *rxBuf)
     {
     case 0x30: return; // Ping
     }
-
-  Dprintf("rx CAN% %08lX ", rxId);
+*/
+  Dprintf("rx %08lX ", rxId); // 22.09.23:  Old "rx CAN% %08lX "
   byte b;
   switch (Id & 0xFE)
     {
@@ -1144,6 +1155,7 @@ void ProcPing(unsigned long rxId, byte *rxBuf)
         case 0x0031: // Noch nicht beobachtet
         case 0x0032: // MS2 HW2.0 = zwei meiner grauen MS2
         case 0x0033: // MS2 HW2.1 = zwei meiner grauen MS2 und die schwarze
+        case 0x0034: // Auch eine MS2                                            // 19.09.23:
                      if (Booster_Typ == BOOST_GB)
                         Central_Typ = CENTR_MS2;
                      break;
