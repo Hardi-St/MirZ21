@@ -1352,7 +1352,7 @@ uint8_t Add_Detected_Loco_to_EEPROM(uint16_t Z21Adr)
   if (Lok_Cnt >= MAX_LOK_DATA) return 0;
 
   // Die Adresse kommt von der Z21 App.
-  // Standard Bereiche:
+  // Standard Bereiche:                      12.11.22:  ALTE Adressen
   //    1 - 4000 (MFX), DCC oder MM
   // 4001 - 8000 DCC    Adr: Z21Adr - 4000  uid: 0xC000 + Adr
   // 8001 - 9000 MFX    Adr: ?              uid: 0x4000 + Z21Adr - 8000
